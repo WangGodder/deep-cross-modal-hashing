@@ -9,7 +9,6 @@ read_log.py
 torchcmh.zip
 logs
 checkpoints
-/torchcmh/dataset/utils/making
 .idea
 *.iml
 
