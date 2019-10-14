@@ -2,7 +2,6 @@
 # @Time    : 2019/7/13
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
-import numpy as np
 import torch
 from torch.autograd import Variable
 from torch.optim import SGD
@@ -10,12 +9,9 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torchcmh.models import alexnet, mlp, vgg_f
 from torchcmh.training.base import TrainBase
-from torchcmh.utils import calc_neighbor, AverageMeter
-from torchcmh.utils import get_plotter
-from torchcmh.training.valid import valid
+from torchcmh.utils import calc_neighbor
 from torchcmh.dataset.utils import single_data
 from torchcmh.loss.distance import focal_loss, euclidean_dist
-import os
 
 
 class CMHH(TrainBase):

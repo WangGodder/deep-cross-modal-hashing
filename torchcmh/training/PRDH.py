@@ -10,11 +10,9 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torchcmh.models import vgg_f, mlp
 from torchcmh.training.base import TrainBase
-from torchcmh.utils import calc_neighbor, AverageMeter, calc_hammingDist
-from torchcmh.utils import get_plotter
-from torchcmh.training.valid import valid
+from torchcmh.utils import calc_neighbor
 from torchcmh.dataset.utils import single_data
-import os
+
 
 class PRDH(TrainBase):
     def __init__(self, data_name, img_dir, bit, visdom=True, batch_size=128, cuda=True, **kwargs):
