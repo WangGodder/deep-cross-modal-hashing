@@ -1,0 +1,39 @@
+# Cross Modal Datasets
+
+#### include COCO2014, Mirflckr25K, Nus Wide, IAPR TC-12
+
+you need .mat file to read data. for each dataset, there are three part mat file you need read(imgList.mat, tag.mat, label.mat)
+
+And you can download from follows url:
+
+#### MS-COCO
+- imageList.mat....
+
+- tag.mat....
+
+- label.mat....
+
+
+#### Mirflckr25K
+- imageList.mat....
+
+- tag.mat....
+
+- label.mat....
+
+#### Nus wide
+
+- imageList.mat....
+
+- tag.mat....
+
+- label.mat....
+
+#### IAPR TC-12
+- imageList.mat....
+
+- tag.mat....
+
+- label.mat....
+
+After download these mat file, please put in data folder by right file name.
