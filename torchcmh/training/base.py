@@ -27,7 +27,7 @@ class TrainBase(object):
         self.checkpoint_dir = os.path.join('..', 'checkpoints', self.name, data_name)
         if not os.path.exists(self.checkpoint_dir):
             os.makedirs(self.checkpoint_dir)
-        self.max_epoch = 200
+        self.max_epoch = 500
         self.lr = {}
         self.lr_decay = 0.9
         self.lr_decay_freq = 1

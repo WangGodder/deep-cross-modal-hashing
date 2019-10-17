@@ -48,9 +48,27 @@ class Config(object):
         resize_transform = transforms.Resize(resize)
         transform_list.append(resize_transform)
         data_augmentation = self.data_augmentation['img']
-        if self.data_augmentation["enable"]:
+        if self.data_augmentation["enable"] and data_augmentation["enable"]:
+            original_retention = float(data_augmentation['originalRetention'])
+            data_augmentation_transform_list = []
             if data_augmentation["randomRotation"]["enable"]:
-                transforms.RandomRotation([90, 90])
+                rotation_list = data_augmentation["randomRotation"]["rotationAngle"]
+                rotation_transforms = []
+                for rotation in rotation_list:
+                    rotation_transforms.append(transforms.RandomRotation(rotation))
+                probability = float(data_augmentation["randomRotation"]["probability"])
+                random_rotation = transforms.RandomApply(rotation_transforms, probability)
+                data_augmentation_transform_list.append(random_rotation)
+            if data_augmentation["RandomHorizontalFlip"]["enable"]:
+                probability = data_augmentation["RandomHorizontalFlip"]["probability"]
+                horizontal_flip = transforms.RandomHorizontalFlip(probability)
+                data_augmentation_transform_list.append(horizontal_flip)
+            if data_augmentation["RandomVerticalFlip"]["enable"]:
+                probability = data_augmentation["RandomVerticalFlip"]["probability"]
+                vertical_flip = transforms.RandomVerticalFlip(probability)
+                data_augmentation_transform_list.append(vertical_flip)
+            data_augmentation_transform = transforms.RandomApply(data_augmentation_transform_list, p=1-original_retention)
+            transform_list.append(data_augmentation_transform)
         if data_preprocess['toTensor']:
             transform_list.append(transforms.ToTensor())
         mean = data_preprocess['normalize']['mean']

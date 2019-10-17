@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from torchcmh.models.ASCHN import resnet18, resnet34, get_MS_Text
 from torchcmh.training.base import TrainBase
 from torchcmh.utils import calc_neighbor
+from torchcmh.utils import calc_map_k
 from torchcmh.dataset.utils import pairwise_data
 
 __all__ = ['train']
@@ -19,12 +20,13 @@ __all__ = ['train']
 class SCAHN(TrainBase):
     def __init__(self, data_name: str, img_dir: str, bit: int, img_net, visdom=True, batch_size=128, cuda=True, **kwargs):
         super(SCAHN, self).__init__("SCAHN", data_name, bit, batch_size, visdom, cuda)
-        self.train_data, self.valid_data = pairwise_data(data_name, img_dir, batch_size=batch_size)
+        self.train_data, self.valid_data = pairwise_data(data_name, img_dir, batch_size=batch_size, **kwargs)
         self.loss_store = ['inter loss', 'intra loss', 'pairwise intra loss', 'quantization loss', 'loss']
         self.parameters = {'fusion num': 4, 'beta': 2 ** np.log2(bit / 32), 'lambda': 1, 'gamma': 1, 'eta': 1/bit}
         self.lr = {'img': 10**(-1.1), 'txt': 10**(-1.1)}
+        self.max_epoch = 500
         self.lr_decay_freq = 1
-        self.lr_decay = 0.98
+        self.lr_decay = (10 ** (-1.1) - 10**(-6.5)) / self.max_epoch
 
         self.num_train = len(self.train_data)
         self.img_model = img_net(bit, self.parameters['fusion num'])
@@ -91,11 +93,6 @@ class SCAHN(TrainBase):
                 loss.backward()
                 self.optimizers[0].step()
                 self.remark_loss(inter_loss, intra_loss, intra_pair_loss, quantization_loss, loss)
-                # self.loss_store['inter loss'].update(inter_loss.item())
-                # self.loss_store['intra loss'].update(intra_loss.item())
-                # self.loss_store['pairwise intra loss'].update(intra_pair_loss.item())
-                # self.loss_store['quantization loss'].update(quantization_loss.item())
-                # self.loss_store['loss'].update(loss.item())
             self.print_loss(epoch)
             self.plot_loss("img loss")
             self.reset_loss()
@@ -144,11 +141,6 @@ class SCAHN(TrainBase):
                 loss.backward()
                 self.optimizers[1].step()
                 self.remark_loss(inter_loss, intra_loss, intra_pair_loss, quantization_loss, loss)
-                # self.loss_store['inter loss'].update(inter_loss.item())
-                # self.loss_store['intra loss'].update(intra_loss.item())
-                # self.loss_store['pairwise intra loss'].update(intra_pair_loss.item())
-                # self.loss_store['quantization loss'].update(quantization_loss.item())
-                # self.loss_store['loss'].update(loss.item())
             self.print_loss(epoch)
             self.plot_loss("txt loss")
             self.reset_loss()
@@ -177,11 +169,78 @@ class SCAHN(TrainBase):
         quantization_loss = 0.5 * (quantization_loss1 + quantization_loss2) * self.parameters['eta']
         return inter_loss, intra_loss, intra_pair_loss, quantization_loss
 
+    @staticmethod
+    def bit_scalable(img_model, txt_model, qB_img, qB_txt, rB_img, rB_txt, dataset, to_bit=[64, 32, 16]):
+        def get_rank(img_net, txt_net):
+            from torch.nn import functional as F
+            w_img = img_net.weight.weight
+            w_txt = txt_net.weight.weight
+            w_img = F.softmax(w_img, dim=0)
+            w_txt = F.softmax(w_txt, dim=0)
+            w = torch.cat([w_img, w_txt], dim=0)
+            w = torch.sum(w, dim=0)
+            _, ind = torch.sort(w)
+            return ind
+
+        rank_index = get_rank(img_model, txt_model)
+        dataset.query()
+        query_label = dataset.get_all_label()
+        dataset.retrieval()
+        retrieval_label = dataset.get_all_label()
+
+        def calc_map(ind):
+            qB_img_ind = qB_img[:, ind]
+            qB_txt_ind = qB_txt[:, ind]
+            rB_img_ind = rB_img[:, ind]
+            rB_txt_ind = rB_txt[:, ind]
+            mAPi2t = calc_map_k(qB_img_ind, rB_txt_ind, query_label, retrieval_label)
+            mAPt2i = calc_map_k(qB_txt_ind, rB_img_ind, query_label, retrieval_label)
+            return mAPi2t, mAPt2i
+
+        print("bit scalable from 128 bit:")
+        for bit in to_bit:
+            if bit >= 128:
+                continue
+            bit_ind = rank_index[128 - bit: 128]
+            mAPi2t, mAPt2i = calc_map(bit_ind)
+            print("%3d: i->t %4.4f| t->i %4.4f" % (bit, mAPi2t, mAPt2i))
+
+    def valid(self, epoch):
+        """
+        valid current training model, and save the best model and hash code.
+        :param epoch: current epoch
+        :return:
+        """
+        mapi2t, mapt2i, qB_img, qB_txt, rB_img, rB_txt = \
+            self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size, return_hash=True)
+        if mapt2i + mapi2t >= self.max_mapi2t + self.max_mapt2i:
+            self.max_mapi2t = mapi2t
+            self.max_mapt2i = mapt2i
+            self.best_epoch = epoch
+            import os
+            self.img_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.img_model.module_name + '.pth'))
+            self.txt_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.txt_model.module_name + '.pth'))
+            if (epoch + 1) % 10 == 0:
+                self.bit_scalable(self.img_model, self.txt_model, qB_img, qB_txt, rB_img, rB_txt, self.valid_data)
+            self.qB_img = qB_img.cpu()
+            self.qB_txt = qB_txt.cpu()
+            self.rB_img = rB_img.cpu()
+            self.rB_txt = rB_txt.cpu()
+            # self.best_train_img, self.best_train_txt = self.get_train_hash()
+        print(
+            'epoch: [%3d/%3d], valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f in epoch %d' %
+            (epoch + 1, self.max_epoch, mapi2t, mapt2i, self.max_mapi2t, self.max_mapt2i, self.best_epoch + 1))
+        if self.plotter:
+            self.plotter.plot("mAP", 'i->t', mapi2t.item())
+            self.plotter.plot("mAP", "t->i", mapt2i.item())
+        self.save_code(epoch)
+
 
 def train(dataset_name: str, img_dir: str, bit: int, img_net_name='resnet34', visdom=True, batch_size=128, cuda=True, **kwargs):
     img_net = resnet34 if img_net_name == 'resnet34' else resnet18
-    trainer = SCAHN(dataset_name, img_dir, img_net, bit, visdom, batch_size, cuda, **kwargs)
+    trainer = SCAHN(dataset_name, img_dir, bit, img_net, visdom, batch_size, cuda, **kwargs)
     trainer.train()
+
 
 
 # def train(dataset_name: str, img_dir: str, bit: int, img_net_name='resnet34', visdom=True, batch_size=128, cuda=True):

@@ -42,14 +42,23 @@ dataPreprocess:
     onehot: True
 
 dataAugmentation:
-  enable: False
+  enable: True
   img:
+    enable: True
+    originalRetention: 0.2
     randomRotation:
-      enable: False
+      enable: True
       probability: 0.5
       rotationAngle: [[90, 90], [180, 180], [270, 270]]
-      single: True
+    RandomHorizontalFlip:
+      enable: True
+      probability: 0.5
+    RandomVerticalFlip:
+      enable: True
+      probability: 0.5
   txt:
+    enable: True
+    originalRetention: 0.5
     RandomErasure:
       enable: True
       probability: 0.2
