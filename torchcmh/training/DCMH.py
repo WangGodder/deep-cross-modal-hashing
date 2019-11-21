@@ -12,10 +12,14 @@ from torchcmh.models import vgg_f, mlp
 from torchcmh.training.base import TrainBase
 from torchcmh.utils import calc_neighbor, AverageMeter
 from torchcmh.dataset.utils import single_data
-import os
 
 
 class DCMH(TrainBase):
+    """
+    Li W J Jiang Q Y. Deep cross-modal hashing
+    In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 3232– 3240. 2017.
+    http://openaccess.thecvf.com/content_cvpr_2017/papers/Jiang_Deep_Cross-Modal_Hashing_CVPR_2017_paper.pdf
+    """
     def __init__(self, data_name, img_dir, bit, visdom=True, batch_size=128, cuda=True, **kwargs):
         super(DCMH, self).__init__("DCMH", data_name, bit, batch_size, visdom, cuda)
         self.train_data, self.valid_data = single_data(data_name, img_dir, batch_size=batch_size, **kwargs)

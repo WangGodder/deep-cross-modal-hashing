@@ -15,6 +15,10 @@ from torchcmh.dataset.utils import single_data
 
 
 class PRDH(TrainBase):
+    """
+    Yang et al. Pairwise relationship guided deep hashing for cross-modal retrieval.
+    In Thirty-First AAAI Conference on Artificial Intelligence.2017
+    """
     def __init__(self, data_name, img_dir, bit, visdom=True, batch_size=128, cuda=True, **kwargs):
         super(PRDH, self).__init__("PRDH", data_name, bit, batch_size, visdom, cuda)
         self.train_data, self.valid_data = single_data(data_name, img_dir, batch_size=batch_size, **kwargs)
