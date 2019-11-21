@@ -22,11 +22,11 @@ class SCAHN(TrainBase):
         super(SCAHN, self).__init__("SCAHN", data_name, bit, batch_size, visdom, cuda)
         self.train_data, self.valid_data = pairwise_data(data_name, img_dir, batch_size=batch_size, **kwargs)
         self.loss_store = ['inter loss', 'intra loss', 'pairwise intra loss', 'quantization loss', 'loss']
-        self.parameters = {'fusion num': 4, 'beta': 2 ** np.log2(bit / 32), 'lambda': 1, 'gamma': 1, 'eta': 1/bit}
+        self.parameters = {'fusion num': 4, 'alpha': 2 ** np.log2(bit / 32), 'lambda': 1, 'gamma': 0.01, 'beta': 2}
         self.lr = {'img': 10**(-1.1), 'txt': 10**(-1.1)}
         self.max_epoch = 500
         self.lr_decay_freq = 1
-        self.lr_decay = (10 ** (-1.1) - 10**(-6.5)) / self.max_epoch
+        self.lr_decay = (10**(-6) / 10 ** (-1.5)) ** (1 / self.max_epoch)
 
         self.num_train = len(self.train_data)
         self.img_model = img_net(bit, self.parameters['fusion num'])
@@ -158,15 +158,16 @@ class SCAHN(TrainBase):
         S_inter1 = calc_neighbor(label1, self.train_L)
         S_inter2 = calc_neighbor(label2, self.train_L)
         S_intra = calc_neighbor(label1, label2)
-        inter_loss1, inter_loss2 = calc_inter_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, G, self.parameters['beta'])
+
+        inter_loss1, inter_loss2 = calc_inter_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, G, self.parameters['alpha'])
         inter_loss = 0.5 * (inter_loss1 + inter_loss2)
-        intra_loss1, intra_loss2 = calc_intra_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, F, self.parameters['beta'])
+        intra_loss1, intra_loss2 = calc_intra_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, F, self.parameters['alpha'])
         intra_loss = 0.5 * (intra_loss1 + intra_loss2) * self.parameters['lambda']
-        intra_pair_loss = calc_intra_pairwise_loss(hash_layers1, hash_layer2, S_intra, self.parameters['beta'])
+        intra_pair_loss = calc_intra_pairwise_loss(hash_layers1, hash_layer2, S_intra, self.parameters['alpha'])
         intra_pair_loss = intra_pair_loss * self.parameters['gamma']
         quantization_loss1 = torch.mean(torch.sum(torch.pow(self.B[ind1, :] - final_hash1, 2), dim=1))
         quantization_loss2 = torch.mean(torch.sum(torch.pow(self.B[ind2, :] - final_hash2, 2), dim=1))
-        quantization_loss = 0.5 * (quantization_loss1 + quantization_loss2) * self.parameters['eta']
+        quantization_loss = 0.5 * (quantization_loss1 + quantization_loss2) / self.bit * self.parameters['beta']
         return inter_loss, intra_loss, intra_pair_loss, quantization_loss
 
     @staticmethod
@@ -182,6 +183,7 @@ class SCAHN(TrainBase):
             _, ind = torch.sort(w)
             return ind
 
+        hash_length = qB_img.size(1)
         rank_index = get_rank(img_model, txt_model)
         dataset.query()
         query_label = dataset.get_all_label()
@@ -199,9 +201,9 @@ class SCAHN(TrainBase):
 
         print("bit scalable from 128 bit:")
         for bit in to_bit:
-            if bit >= 128:
+            if bit >= hash_length:
                 continue
-            bit_ind = rank_index[128 - bit: 128]
+            bit_ind = rank_index[hash_length - bit: hash_length]
             mAPi2t, mAPt2i = calc_map(bit_ind)
             print("%3d: i->t %4.4f| t->i %4.4f" % (bit, mAPi2t, mAPt2i))
 
@@ -220,12 +222,12 @@ class SCAHN(TrainBase):
             import os
             self.img_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.img_model.module_name + '.pth'))
             self.txt_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.txt_model.module_name + '.pth'))
-            if (epoch + 1) % 10 == 0:
-                self.bit_scalable(self.img_model, self.txt_model, qB_img, qB_txt, rB_img, rB_txt, self.valid_data)
             self.qB_img = qB_img.cpu()
             self.qB_txt = qB_txt.cpu()
             self.rB_img = rB_img.cpu()
             self.rB_txt = rB_txt.cpu()
+            if (epoch + 1) > 10:
+                self.bit_scalable(self.img_model, self.txt_model, self.qB_img, self.qB_txt, self.rB_img, self.rB_txt, self.valid_data)
             # self.best_train_img, self.best_train_txt = self.get_train_hash()
         print(
             'epoch: [%3d/%3d], valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f in epoch %d' %

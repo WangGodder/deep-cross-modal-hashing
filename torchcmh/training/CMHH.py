@@ -7,11 +7,12 @@ from torch.autograd import Variable
 from torch.optim import SGD
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from torchcmh.models import alexnet, mlp, vgg_f
+from torchcmh.models import mlp, vgg_f
 from torchcmh.training.base import TrainBase
 from torchcmh.utils import calc_neighbor
 from torchcmh.dataset.utils import single_data
-from torchcmh.loss.distance import focal_loss, euclidean_dist
+from torchcmh.loss.distance import euclidean_dist_matrix
+from torchcmh.loss.common_loss import focal_loss
 
 
 class CMHH(TrainBase):
@@ -101,7 +102,7 @@ class CMHH(TrainBase):
             self.plotter.next_epoch()
 
     def object_function(self, cur_h, O, label, ind):
-        hamming_dist = euclidean_dist(cur_h, O)
+        hamming_dist = euclidean_dist_matrix(cur_h, O)
         logit = torch.exp(-hamming_dist * self.parameters['beta'])
         sim = calc_neighbor(label, self.train_label)
         focal_pos = sim * focal_loss(logit, gamma=self.parameters['gamma'], alpha=self.parameters['alpha'])

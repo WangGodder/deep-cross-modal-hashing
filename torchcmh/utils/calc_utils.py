@@ -141,19 +141,6 @@ def calc_neighbor(label1, label2):
     return Sim.float()
 
 
-def calc_cos_sim(hash1: torch.Tensor, hash2: torch.Tensor):
-    inter = torch.matmul(hash1, hash2.t())
-    length1 = calc_vector_length(hash1, keepdim=True)
-    length2 = calc_vector_length(hash2, keepdim=True)
-    return torch.div(inter, torch.matmul(length1, length2.t()))
-
-
-def calc_vector_length(vector: torch.Tensor, keepdim=False):
-    if len(vector.shape) > 2:
-        vector = vector.unsqueeze(0)
-    return torch.sqrt(torch.sum(torch.pow(vector, 2), dim=-1, keepdim=keepdim))
-
-
 def norm_max_min(x: torch.Tensor, dim=None):
     if dim is None:
         max = torch.max(x)

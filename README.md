@@ -26,3 +26,6 @@ if __name__ == '__main__':
     run(config_path='default_config.yml')
 ```
 ### how to create your method
+- create new method file in folder ./torchcmh/training/
+- inherit implement TrainBase
+- change the method name in config .yml file and run.

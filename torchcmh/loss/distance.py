@@ -3,19 +3,7 @@
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
 import torch
-__all__ = ['focal_loss', 'hamming_dist', 'euclidean_dist']
-
-
-def focal_loss(logit: torch.Tensor, gamma, alpha=1, eps=1e-5):
-    """
-    focal loss: /alpha * (1 - logit)^{gamma} * log^{logit}
-    :param logit: logit value 0 ~ 1
-    :param gamma:
-    :param alpha:
-    :param eps: a tiny value prevent log(0)
-    :return:
-    """
-    return alpha * -torch.pow(1 - logit, gamma) * torch.log(logit + eps)
+__all__ = ['hamming_dist', 'euclidean_dist_matrix', 'euclidean_dist']
 
 
 def hamming_dist(hash1, hash2):
@@ -30,12 +18,12 @@ def hamming_dist(hash1, hash2):
     return distH
 
 
-def euclidean_dist(tensor1: torch.Tensor, tensor2: torch.Tensor):
+def euclidean_dist_matrix(tensor1: torch.Tensor, tensor2: torch.Tensor):
     """
     calculate euclidean distance as inner product
-    :param tensor1:
-    :param tensor2:
-    :return:
+    :param tensor1: a tensor with shape (a, c)
+    :param tensor2: a tensor with shape (b, c)
+    :return: the euclidean distance matrix which each point is the distance between a row in tensor1 and a row in tensor2.
     """
     dim1 = tensor1.shape[0]
     dim2 = tensor2.shape[0]
@@ -45,3 +33,14 @@ def euclidean_dist(tensor1: torch.Tensor, tensor2: torch.Tensor):
     dist = torch.sqrt(a2 + b2 - 2 * multi)
     return dist
 
+
+def euclidean_dist(tensor1:torch.Tensor, tensor2:torch.Tensor):
+    """
+    calculate euclidean distance between two list of vector.
+    :param tensor1: tensor with shape (a, b)
+    :param tensor2: tensor with shape (a, b)
+    :return:
+    """
+    sub = tensor1 - tensor2
+    dist = torch.sqrt(torch.sum(torch.pow(sub, 2), dim=1))
+    return dist

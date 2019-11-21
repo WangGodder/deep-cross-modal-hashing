@@ -1,5 +1,5 @@
 training:
-  method: DCMH
+  method: GCH
   dataName: Mirflickr25K
   batchSize: 64
   bit: 64
@@ -42,7 +42,7 @@ dataPreprocess:
     onehot: True
 
 dataAugmentation:
-  enable: True
+  enable: False
   img:
     enable: True
     originalRetention: 0.2

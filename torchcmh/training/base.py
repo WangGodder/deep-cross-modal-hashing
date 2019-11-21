@@ -95,7 +95,10 @@ class TrainBase(object):
 
     def remark_loss(self, *args):
         for i, loss_name in enumerate(self.loss_store.keys()):
-            self.loss_store[loss_name].update(args[i].item())
+            if isinstance(args[i], torch.Tensor):
+                self.loss_store[loss_name].update(args[i].item())
+            else:
+                self.loss_store[loss_name].update(args[i])
 
     def load_model(self):
         """
@@ -145,6 +148,7 @@ class TrainBase(object):
             self.plotter.plot("mAP", 'i->t', mapi2t.item())
             self.plotter.plot("mAP", "t->i", mapt2i.item())
         self.save_code(epoch)
+
 
     @staticmethod
     def valid_calc(img_model, txt_model, dataset, bit, batch_size, drop_integer=False, return_hash=False):
