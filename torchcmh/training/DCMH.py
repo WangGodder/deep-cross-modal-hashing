@@ -8,7 +8,7 @@ from torch.autograd import Variable
 from torch.optim import SGD
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from torchcmh.models import vgg_f, mlp
+from torchcmh.models import cnnf, MLP
 from torchcmh.training.base import TrainBase
 from torchcmh.utils import calc_neighbor, AverageMeter
 from torchcmh.dataset.utils import single_data
@@ -30,8 +30,8 @@ class DCMH(TrainBase):
         self.lr_decay_freq = 1
         self.lr_decay = (1e-6 / 10**(-1.5))**(1/self.max_epoch)
         self.num_train = len(self.train_data)
-        self.img_model = vgg_f.get_vgg_f(bit)
-        self.txt_model = mlp.MLP(self.train_data.get_tag_length(), bit)
+        self.img_model = cnnf.get_cnnf(bit)
+        self.txt_model = MLP.MLP(self.train_data.get_tag_length(), bit, leakRelu=False)
         self.F_buffer = torch.randn(self.num_train, bit)
         self.G_buffer = torch.randn(self.num_train, bit)
         self.train_L = self.train_data.get_all_label()
@@ -133,172 +133,6 @@ class DCMH(TrainBase):
         quantization = torch.sum(torch.pow(self.B[ind, :] - cur_h, 2))
         balance = torch.sum(torch.pow(cur_h.t().mm(self.ones) + C[unupdated_ind].t().mm(self.ones_), 2))
         return logloss, quantization, balance
-
-
-# def train(dataset_name: str, img_dir: str, bit: int, visdom=True, batch_size=128, cuda=True):
-#     lr = 10 ** (-1.5)
-#     lr_end = 10 ** (-6.0)
-#     max_epoch = 500
-#     gamma = 1
-#     eta = 1
-#     print("training %s, for %3d bit. hyper-paramter list:\n gamma = %3.2f \n eta = %3.2f" % (name, bit, gamma, eta))
-#     checkpoint_dir = os.path.join('..', 'checkpoints', name, dataset_name)
-#     if not os.path.exists(checkpoint_dir):
-#         os.makedirs(checkpoint_dir)
-#
-#     if visdom:
-#         plotter = get_plotter(name)
-#
-#     train_data, valid_data = single_data(dataset_name, img_dir, batch_size=batch_size)
-#
-#     img_model = vgg_f.get_vgg_f(bit)
-#     txt_model = mlp.MLP(train_data.get_tag_length(), bit)
-#
-#     num_train = len(train_data)
-#
-#     train_L = train_data.get_all_label()
-#     F_buffer = torch.randn(num_train, bit)
-#     G_buffer = torch.randn(num_train, bit)
-#     ones = torch.ones(batch_size, 1)
-#     ones_ = torch.ones(num_train - batch_size, 1)
-#
-#     if cuda:
-#         img_model = img_model.cuda()
-#         txt_model = txt_model.cuda()
-#         train_L = train_L.cuda()
-#         F_buffer = F_buffer.cuda()
-#         G_buffer = G_buffer.cuda()
-#         ones = ones.cuda()
-#         ones_ = ones_.cuda()
-#
-#     Sim = calc_neighbor(train_L, train_L)
-#     B = torch.sign(F_buffer + G_buffer)
-#
-#     optimizer_img = SGD(img_model.parameters(), lr=lr)
-#     optimizer_txt = SGD(txt_model.parameters(), lr=lr)
-#
-#     learning_rate = np.linspace(lr, lr_end, max_epoch + 1)
-#
-#     max_mapi2t = max_mapt2i = 0.
-#     train_loader = DataLoader(train_data, batch_size=batch_size, drop_last=True, num_workers=4, shuffle=False, pin_memory=True)
-#     for epoch in range(max_epoch):
-#         img_model.train()
-#         txt_model.train()
-#         train_data.img_load()
-#         train_data.re_random_item()
-#         for data in tqdm(train_loader):
-#             ind = data['index'].numpy()
-#             unupdated_ind = np.setdiff1d(range(num_train), ind)
-#
-#             sample_L = data['label']  # type: torch.Tensor
-#             image = data['img']  # type: torch.Tensor
-#             if cuda:
-#                 image = image.cuda()
-#                 sample_L = sample_L.cuda()
-#
-#             S = calc_neighbor(sample_L, train_L)  # get similar matrix of current labels
-#             cur_f = img_model(image)  # cur_f: (batch_size, bit)
-#             F_buffer[ind, :] = cur_f.data
-#             F = Variable(F_buffer)
-#             G = Variable(G_buffer)
-#
-#             theta = 1.0 / 2 * torch.matmul(cur_f, G.t())
-#             logloss = -torch.sum(S * theta - torch.log(1.0 + torch.exp(theta)))
-#             quantization = torch.sum(torch.pow(B[ind, :] - cur_f, 2))
-#             balance = torch.sum(torch.pow(cur_f.t().mm(ones) + F[unupdated_ind].t().mm(ones_), 2))
-#             loss = logloss + gamma * quantization + eta * balance
-#             loss /= (batch_size * num_train)
-#
-#             optimizer_img.zero_grad()
-#             loss.backward()
-#             optimizer_img.step()
-#
-#             logloss_store.update(logloss.item(), (batch_size * num_train))
-#             quantization_store.update(quantization.item(), (batch_size * num_train))
-#             balance_store.update(balance.item(), (batch_size * num_train))
-#             loss_store.update(loss.item())
-#         print("loss: %4.4f, log loss: %4.4f, quantization loss: %4.4f, balance loss: %4.4f" %
-#               (loss_store.avg, logloss_store.avg, quantization_store.avg, balance_store.avg))
-#         if plotter is not None:
-#             plotter.plot("img loss", "loss", loss_store.avg)
-#             plotter.plot("img loss", "log loss", logloss_store.avg)
-#             plotter.plot("img loss", "quantization loss", quantization_store.avg)
-#             plotter.plot("img loss", "balance loss", balance_store.avg)
-#         logloss_store.reset()
-#         quantization_store.reset()
-#         balance_store.reset()
-#         loss_store.reset()
-#
-#         train_data.txt_load()
-#         train_data.re_random_item()
-#         for data in tqdm(train_loader):
-#             ind = data['index'].numpy()
-#             unupdated_ind = np.setdiff1d(range(num_train), ind)
-#
-#             sample_L = data['label']  # type: torch.Tensor
-#             text = data['txt']  # type: torch.Tensor
-#             if cuda:
-#                 text = text.cuda()
-#                 sample_L = sample_L.cuda()
-#
-#             # similar matrix size: (batch_size, num_train)
-#             S = calc_neighbor(sample_L, train_L)  # S: (batch_size, num_train)
-#             cur_g = txt_model(text)  # cur_g: (batch_size, bit)
-#             G_buffer[ind, :] = cur_g.data
-#             F = Variable(F_buffer)
-#             G = Variable(G_buffer)
-#
-#             # calculate loss
-#             theta = 1.0 / 2 * torch.matmul(cur_g, F.t())
-#             logloss = -torch.sum(S * theta - torch.log(1.0 + torch.exp(theta)))
-#             quantization = torch.sum(torch.pow(B[ind, :] - cur_g, 2))
-#             balance = torch.sum(torch.pow(cur_g.t().mm(ones) + G[unupdated_ind].t().mm(ones_), 2))
-#             loss = logloss + gamma * quantization + eta * balance
-#             loss /= (num_train * batch_size)
-#
-#             optimizer_txt.zero_grad()
-#             loss.backward()
-#             optimizer_txt.step()
-#
-#             logloss_store.update(logloss.item(), (batch_size * num_train))
-#             quantization_store.update(quantization.item(), (batch_size * num_train))
-#             balance_store.update(balance.item(), (batch_size * num_train))
-#             loss_store.update(loss.item())
-#         print("loss: %4.4f, log loss: %4.4f, quantization loss: %4.4f, balance loss: %4.4f" %
-#               (loss_store.avg, logloss_store.avg, quantization_store.avg, balance_store.avg))
-#         if plotter is not None:
-#             plotter.plot("txt loss", "loss", loss_store.avg)
-#             plotter.plot("txt loss", "log loss", logloss_store.avg)
-#             plotter.plot("txt loss", "quantization loss", quantization_store.avg)
-#             plotter.plot("txt loss", "balance loss", balance_store.avg)
-#         logloss_store.reset()
-#         quantization_store.reset()
-#         balance_store.reset()
-#         loss_store.reset()
-#
-#         # update B
-#         B = torch.sign(F_buffer + G_buffer)
-#         loss = calc_loss(B, F, G, Variable(Sim), gamma, eta)
-#         print('...epoch: %3d, loss: %3.3f, lr: %f' % (epoch + 1, loss.data, lr))
-#
-#         mapi2t, mapt2i = valid(img_model, txt_model, valid_data, bit, batch_size)
-#         if mapt2i + mapi2t >= max_mapi2t + max_mapt2i:
-#             max_mapi2t = mapi2t
-#             max_mapt2i = mapt2i
-#             img_model.save_entire(os.path.join(checkpoint_dir, str(bit) + '-' + img_model.module_name + '.pth'))
-#             txt_model.save_entire(os.path.join(checkpoint_dir, str(bit) + '-' + txt_model.module_name + '.pth'))
-#         print('...epoch: %3d, valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' %
-#               (epoch + 1, mapi2t, mapt2i, max_mapi2t, max_mapt2i))
-#         plotter.plot("mAP", 'i->t', mapi2t.item())
-#         plotter.plot("mAP", "t->i", mapt2i.item())
-#
-#         lr = learning_rate[epoch + 1]
-#         for param in optimizer_img.param_groups:
-#             param['lr'] = lr
-#         for param in optimizer_txt.param_groups:
-#             param['lr'] = lr
-#
-#         plotter.next_epoch()
 
 
 def train(dataset_name: str, img_dir: str, bit: int, visdom=True, batch_size=128, cuda=True, **kwargs):

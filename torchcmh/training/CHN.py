@@ -7,7 +7,7 @@ from torch.optim import SGD
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
-from torchcmh.models import vgg_f, mlp
+from torchcmh.models import cnnf, MLP
 from torchcmh.training.base import TrainBase
 from torchcmh.dataset.utils import single_data
 
@@ -26,8 +26,8 @@ class CHN(TrainBase):
         self.lr_decay_freq = 10
         self.lr_decay = 0.5
         self.num_train = len(self.train_data)
-        self.img_model = vgg_f.get_vgg_f(bit)
-        self.txt_model = mlp.MLP(self.train_data.get_tag_length(), bit)
+        self.img_model = cnnf.get_cnnf(bit)
+        self.txt_model = MLP.MLP(self.train_data.get_tag_length(), bit)
         self.F_buffer = torch.randn(self.num_train, bit)
         self.G_buffer = torch.randn(self.num_train, bit)
         self.train_L = self.train_data.get_all_label()

@@ -1,5 +1,7 @@
-
-
+# -*- coding: utf-8 -*-
+# @Time    : 2019/5/11
+# @Author  : Godder
+# @Github  : https://github.com/WangGodder
 import numpy as np
 from visdom import Visdom
 

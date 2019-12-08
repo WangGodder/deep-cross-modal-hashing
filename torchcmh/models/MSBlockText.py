@@ -87,10 +87,9 @@ class Release_Block(nn.Module):
 
 
 class MS_Text(BasicModule):
-    def __init__(self, txt_length, bit, **kwargs):
+    def __init__(self, txt_length, bit):
         super(MS_Text, self).__init__()
-        self.module_name = 'MS Text'
-        self.out_feature = kwargs['out_feature'] if 'out_feature' in kwargs.keys() else False
+        self.module_name = 'MS-BlockTextNet'
 
         # MS blocks
         self.block1 = MS_Block(1, 1, 10, txt_length)
@@ -159,28 +158,25 @@ class MS_Text(BasicModule):
         x = self.release4(x)
         return x
 
-    def _get_hash(self, x):
+    def _get_hash(self, x, out_feature=False):
         x = self._get_feature(x)
-
         f = self.linear_conv4(x)
         h = self.relu(f)
         h = self.LRN(h)
         h = self.hash_conv4(h)
-        # h = torch.tanh(h)
         h = h.squeeze()   # type: torch.Tensor
-        if self.out_feature and self.training:
+        if out_feature:
             f = f.squeeze()
             return h, f
-
         return h
 
-    def forward(self, x):
+    def forward(self, x, out_feature=False):
         ms_out = self._get_ms_feature(x)
-        return self._get_hash(ms_out)
+        return self._get_hash(ms_out, out_feature)
 
 
-def get_MS_Text(tag_length, bit, **kwargs):
-    return MS_Text(tag_length, bit, **kwargs)
+def get_MS_Block_Text(tag_length, bit):
+    return MS_Text(tag_length, bit)
 
 
 if __name__ == '__main__':
@@ -188,4 +184,3 @@ if __name__ == '__main__':
     x = torch.randn(4, 1, 1386, 1)
     y = net(x)
     print(y.shape)
-    # print(y1)

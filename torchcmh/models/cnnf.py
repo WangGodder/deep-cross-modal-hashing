@@ -6,15 +6,15 @@ import torch.nn as nn
 from torchcmh.models import abs_dir, BasicModule
 import os
 
-__all__ = ['get_vgg_f', 'VGG_F']
+__all__ = ['get_cnnf', 'get_cnnf_fcn', 'get_cnnf_graph_out', 'CNNF']
 
 pretrain_model = os.path.join(abs_dir, "pretrain_model", "imagenet-vgg-f.pth")
 
 
-class VGG_F(BasicModule):
-    def __init__(self, bit):
-        super(VGG_F, self).__init__()
-        self.module_name = "vgg-f"
+class CNNF(BasicModule):
+    def __init__(self, bit, fcn=False, graph_out=False):
+        super(CNNF, self).__init__()
+        self.module_name = "CNNF"
         self.features = nn.Sequential(
             # 0 conv1
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=11, stride=4),
@@ -47,6 +47,8 @@ class VGG_F(BasicModule):
             nn.ReLU(inplace=True),
             # 14 pool5
             nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2), padding=(0, 0)),
+        )
+        self.fc = nn.Sequential(
             # 15 full_conv6
             nn.Conv2d(in_channels=256, out_channels=4096, kernel_size=6),
             # 16 relu6
@@ -54,11 +56,15 @@ class VGG_F(BasicModule):
             # 17 full_conv7
             nn.Conv2d(in_channels=4096, out_channels=4096, kernel_size=1),
             # 18 relu7
-            nn.ReLU(inplace=True),
-        )
+            nn.ReLU(inplace=True),)
         # fc8
         self.classifier = nn.Linear(in_features=4096, out_features=bit)
-
+        self.fcn = fcn
+        self.graph_out = graph_out and fcn
+        if self.fcn:
+            self.fcn_pooling3_3 = nn.MaxPool2d((3, 3), stride=(1, 1))   # 4 * 4
+            self.fcn_pooling4_4 = nn.MaxPool2d((4, 4), stride=(1, 1))   # 3 * 3
+            self.fcn_pooling6_6 = nn.MaxPool2d((6, 6), stride=(1, 1))   # 1 * 1
         self._init()
 
     def _init(self):
@@ -74,15 +80,43 @@ class VGG_F(BasicModule):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-    def forward(self, x):
+    def forward(self, x, out_feature=False):
         x = self.features(x)
-        x = x.squeeze()
-        x = self.classifier(x)
-        return x
+        if self.fcn:
+            pool_out3_3 = self.fcn_pooling3_3(x)
+            out = pool_out3_3.reshape(-1, 256 * 16, 1, 1)
+        else:
+            out = self.fc(x)
+        feature = out.squeeze()
+        out = self.classifier(feature)
+        if self.graph_out:
+            pool_out4_4 = self.fcn_pooling4_4(x)
+            pool_out6_6 = self.fcn_pooling6_6(x)
+            if out_feature:
+                return out, [pool_out3_3, pool_out4_4, pool_out6_6], feature
+            return out, [pool_out3_3, pool_out4_4, pool_out6_6]
+        if out_feature:
+            return out, feature
+        return out
 
 
-def get_vgg_f(bit, pretrain=True):
-    model = VGG_F(bit)
+def get_cnnf(bit, pretrain=True):
+    model = CNNF(bit)
     if pretrain:
         model.init_pretrained_weights(pretrain_model)
     return model
+
+
+def get_cnnf_fcn(bit, pretrain=True):
+    model = CNNF(bit, fcn=True)
+    if pretrain:
+        model.init_pretrained_weights(pretrain_model)
+    return model
+
+
+def get_cnnf_graph_out(bit, pretrain=True):
+    model = CNNF(bit, fcn=True, graph_out=True)
+    if pretrain:
+        model.init_pretrained_weights(pretrain_model)
+    return model
+

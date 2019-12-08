@@ -6,34 +6,20 @@ you need .mat file to read data. for each dataset, there are three part mat file
 
 And you can download from follows url:
 
-#### MS-COCO
-- imageList.mat....
-
-- tag.mat....
-
-- label.mat....
-
-
 #### Mirflckr25K
-- imageList.mat....
-
-- tag.mat....
-
-- label.mat....
+- download: https://pan.baidu.com/s/1XlomcQR2ldu5dzENbukDLw
+- password: 2s36
 
 #### Nus wide
+- download: https://pan.baidu.com/s/1v6S8pRf18O0C0tdfJVeSVw
+- password: 0qi0
 
-- imageList.mat....
-
-- tag.mat....
-
-- label.mat....
+#### MS-COCO
+- download: 
+- password: 
 
 #### IAPR TC-12
-- imageList.mat....
-
-- tag.mat....
-
-- label.mat....
+- download: 
+- password: 
 
 After download these mat file, please put in data folder by right file name.

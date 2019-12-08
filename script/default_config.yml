@@ -1,5 +1,5 @@
 training:
-  method: GCH
+  method: GANCMH
   dataName: Mirflickr25K
   batchSize: 64
   bit: 64

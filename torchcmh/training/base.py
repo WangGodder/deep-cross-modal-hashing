@@ -33,13 +33,14 @@ class TrainBase(object):
         self.lr_decay_freq = 1
         self.optimizers = []
         self.schedulers = None
-        self.max_mapi2t = self.max_mapt2i = 0.
+        self.max_mapi2t = self.max_mapt2i = self.max_mapi2i = self.max_mapt2t = 0.
         self.best_epoch = 0
         self.qB_img = self.qB_txt = self.rB_img = self.rB_txt = None
         self.best_train_img = self.best_train_txt = None
 
     def _init(self):
         self.schedulers = self.__lr_scheduler()
+        self.loss_store = self._loss_store_init(self.loss_store)
         print("training %s for %d bit. hyper-paramter list:" % (self.name, self.bit))
         for key, value in self.parameters.items():
             print("%8s: %4.3f" % (key, value))
@@ -47,10 +48,6 @@ class TrainBase(object):
         for key, value in self.lr.items():
             print("%8s: %5.5f" % (key, value))
         print("img net: %s, txt net: %s" % (self.img_model.module_name, self.txt_model.module_name))
-        loss_store = {}
-        for loss_name in self.loss_store:
-            loss_store[loss_name] = AverageMeter()
-        self.loss_store = loss_store
 
     def __lr_scheduler(self):
         """
@@ -72,19 +69,25 @@ class TrainBase(object):
         for scheduler in self.schedulers:
             scheduler.step()
 
-    def plot_loss(self, title):
+    def plot_loss(self, title, loss_store=None):
+        if loss_store is None:
+            loss_store = self.loss_store
         if self.plotter:
-            for name, loss in self.loss_store.items():
+            for name, loss in loss_store.items():
                 self.plotter.plot(title, name, loss.avg)
 
-    def print_loss(self, epoch):
+    def print_loss(self, epoch, loss_store=None):
         loss_str = "epoch: [%3d/%3d], " % (epoch+1, self.max_epoch)
-        for name, value in self.loss_store.items():
+        if loss_store is None:
+            loss_store = self.loss_store
+        for name, value in loss_store.items():
             loss_str += name + " {:4.3f}".format(value.avg) + "\t"
         print(loss_str)
 
-    def reset_loss(self):
-        for store in self.loss_store.values():
+    def reset_loss(self, loss_store=None):
+        if loss_store is None:
+            loss_store = self.loss_store
+        for store in loss_store.values():
             store.reset()
 
     def train(self, num_works=4):
@@ -94,6 +97,11 @@ class TrainBase(object):
         pass
 
     def remark_loss(self, *args):
+        """
+        store loss into loss store by order
+        :param args: loss to store
+        :return:
+        """
         for i, loss_name in enumerate(self.loss_store.keys()):
             if isinstance(args[i], torch.Tensor):
                 self.loss_store[loss_name].update(args[i].item())
@@ -115,13 +123,26 @@ class TrainBase(object):
     def to_cuda(*args):
         """
         chagne all tensor from cpu tensor to cuda tensor
-        :param args: tensor
-        :return:
+        :param args: tensors or models
+        :return: the tensors or models in cuda by input order
         """
         cuda_args = []
         for arg in args:
             cuda_args.append(arg.cuda())
         return cuda_args
+
+    @staticmethod
+    def _loss_store_init(loss_store):
+        """
+        initialize loss store, transform list to dict by (loss name -> loss register)
+        :param loss_store: the list with name of loss
+        :return: the dict of loss store
+        """
+        dict_store = {}
+        for loss_name in loss_store:
+            dict_store[loss_name] = AverageMeter()
+        loss_store = dict_store
+        return loss_store
 
     def valid(self, epoch):
         """
@@ -149,35 +170,34 @@ class TrainBase(object):
             self.plotter.plot("mAP", "t->i", mapt2i.item())
         self.save_code(epoch)
 
-
     @staticmethod
     def valid_calc(img_model, txt_model, dataset, bit, batch_size, drop_integer=False, return_hash=False):
         """
-        get valid set hash code and calculate mAP
-        :param img_model:
-        :param txt_model:
-        :param dataset:
-        :param bit:
-        :param batch_size:
-        :param drop_integer:
-        :param return_hash:
-        :return:
+        get valid data hash code and calculate mAP
+        :param img_model: the image model
+        :param txt_model: the txt model
+        :param dataset: the valid dataset
+        :param bit: the length of hash code
+        :param batch_size: the batch size of valid
+        :param drop_integer: if true, the excrescent data will be drop
+        :param return_hash: if true, the hash codes will be returned
+        :return: mAP and hash codes(if return_hash = True)
         """
         # get query img and txt binary code
         dataset.query()
-        qB_img = TrainBase.get_img_code(img_model, dataset, bit, batch_size, drop_integer)
-        qB_txt = TrainBase.get_txt_code(txt_model, dataset, bit, batch_size, drop_integer)
+        qB_img, qB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size)
         query_label = dataset.get_all_label()
         # get retrieval img and txt binary code
         dataset.retrieval()
-        rB_img = TrainBase.get_img_code(img_model, dataset, bit, batch_size, drop_integer)
-        rB_txt = TrainBase.get_txt_code(txt_model, dataset, bit, batch_size, drop_integer)
+        rB_img, rB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size)
         retrieval_label = dataset.get_all_label()
         mAPi2t = calc_map_k(qB_img, rB_txt, query_label, retrieval_label)
         mAPt2i = calc_map_k(qB_txt, rB_img, query_label, retrieval_label)
+        mAPi2i = calc_map_k(qB_img, rB_img, query_label, retrieval_label)
+        mApt2t = calc_map_k(qB_txt, rB_txt, query_label, retrieval_label)
         if return_hash:
-            return mAPi2t, mAPt2i, qB_img.cpu(), qB_txt.cpu(), rB_img.cpu(), rB_txt.cpu()
-        return mAPi2t, mAPt2i
+            return mAPi2t, mAPt2i, mAPi2i, mApt2t, qB_img.cpu(), qB_txt.cpu(), rB_img.cpu(), rB_txt.cpu()
+        return mAPi2t, mAPt2i, mAPi2i, mApt2t
 
     def get_train_hash(self):
         img_hash = self.get_img_code(self.img_model, self.train_data, self.bit, self.batch_size)
@@ -189,6 +209,27 @@ class TrainBase(object):
         mAPi2t = calc_map_k(qB_img, rB_txt, query_label, retrieval_label)
         mAPt2i = calc_map_k(qB_txt, rB_img, query_label, retrieval_label)
         return mAPi2t, mAPt2i
+
+    @staticmethod
+    def get_codes(img_model, txt_model, dataset, bit, batch_size, cuda=True):
+        dataset.both_load()
+        dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=4, pin_memory=True)
+        B_img = B_txt = torch.empty(len(dataset), bit, dtype=torch.float)
+        if cuda:
+            B_img, B_txt = TrainBase.to_cuda(B_img, B_txt)
+        img_model.eval()
+        txt_model.eval()
+        for data in tqdm(dataloader):
+            index = data['index'].numpy()
+            img = data['img']
+            txt = data['txt']
+            if cuda:
+                img, txt = TrainBase.to_cuda(img, txt)
+            img_hash = torch.tanh(img_model(img))
+            txt_hash = torch.tanh(txt_model(txt))
+            B_img[index, :] = img_hash.data()
+            B_txt[index, :] = txt_hash.data()
+        return B_img, B_txt
 
     @staticmethod
     def get_img_code(img_model, dataset, bit, batch_size, drop_integer=False, cuda=True):
@@ -245,3 +286,4 @@ class TrainBase(object):
 
     def resume_train(self, state_path):
         pass
+

@@ -1,0 +1,59 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2019/7/22
+# @Author  : Godder
+# @Github  : https://github.com/WangGodder
+from torch import nn
+from torch.nn import functional as F
+from torchcmh.models import BasicModule
+import torch
+
+
+__all__ = ['MLP']
+
+
+def weights_init(m):
+    if type(m) == nn.Conv2d:
+        nn.init.normal_(m.weight.data, 0.0, 0.01)
+        nn.init.normal_(m.bias.data, 0.0, 0.01)
+    elif type(m) == nn.Conv1d:
+        nn.init.normal_(m.weight.data, 0.0, 0.01)
+        nn.init.normal_(m.bias.data, 0.0, 0.01)
+
+
+class MLP(BasicModule):
+    def __init__(self, input_dim, output_dim, hidden_nodes=[8192], dropout=None, leakRelu=True):
+        """
+        :param input_dim: dimension of input
+        :param output_dim: bit number of the final binary code
+        """
+        super(MLP, self).__init__()
+        self.module_name = "MLP"
+
+        # full-conv layers
+        full_conv_layers = []
+        in_channel = 1
+        for hidden_node in hidden_nodes:
+            kernel_size = input_dim if in_channel == 1 else 1
+            full_conv_layers.append(nn.Conv1d(in_channel, hidden_node, kernel_size=kernel_size, stride=1))
+            in_channel = hidden_node
+            if dropout:
+                full_conv_layers.append(nn.Dropout(dropout))
+            if leakRelu:
+                full_conv_layers.append(nn.LeakyReLU(inplace=True))
+            else:
+                full_conv_layers.append(nn.ReLU(inplace=True))
+        full_conv_layers.append(nn.Conv1d(in_channel, output_dim, kernel_size=1, stride=1))
+        self.layers = nn.Sequential(*full_conv_layers)
+        # self.conv1 = nn.Conv2d(1, hidden_node, kernel_size=(input_dim, 1), stride=(1, 1))
+        # self.dropout = nn.Dropout(dropout) if dropout else None
+        # self.conv2 = nn.Conv2d(hidden_node, bit, kernel_size=1, stride=(1, 1))
+        self.apply(weights_init)
+
+    def forward(self, x: torch.Tensor):
+        if len(x.shape) == 2:
+            x = x.unsqueeze(1)
+        if len(x.shape) > 3:
+            x = x.squeeze().unsqueeze(1)
+        x = self.layers(x)
+        x = x.squeeze()
+        return x

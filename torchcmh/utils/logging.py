@@ -1,8 +1,15 @@
 from __future__ import absolute_import
 import os
 import sys
+import errno
 
-from .osutils import mkdir_if_missing
+
+def mkdir_if_missing(dir_path):
+    try:
+        os.makedirs(dir_path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
 
 class Logger(object):

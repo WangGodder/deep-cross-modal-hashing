@@ -15,7 +15,7 @@ def focal_loss(logit: torch.Tensor, gamma, alpha=1, eps=1e-5):
     :param eps: a tiny value prevent log(0)
     :return:
     """
-    return alpha * -torch.pow(1 - logit, gamma) * torch.log(logit + eps)
+    return -alpha * torch.pow(1 - logit, gamma) * torch.log(logit + eps)
 
 
 def cosine(hash1: torch.Tensor, hash2: torch.Tensor):
