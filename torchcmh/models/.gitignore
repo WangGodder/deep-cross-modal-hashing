@@ -2,7 +2,6 @@
 capsnet.py
 resnet_capsnet.py
 CompactBilinearPooling.py
-GCN.py
 GCNText.py
 GCMH
 QDCMH
