@@ -22,4 +22,4 @@ And you can download from follows url:
 - download: 
 - password: 
 
-After download these mat file, please put in data folder by right file name.
+After download these mat file, please put in data folder "torchcmh/dataset/data/$datasetname/"

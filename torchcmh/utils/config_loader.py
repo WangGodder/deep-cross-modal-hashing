@@ -94,7 +94,7 @@ class Config(object):
         if dataset_name.lower() not in self.dataset_names:
             raise ValueError("there are not dataset name is %s" % dataset_name)
         paths = self.dataset_path[self.dataset_names.index(dataset_name.lower())]
-        return paths['img_dir'], paths["imgList"], paths["tagList"], paths["labelList"]
+        return paths['img_dir']
 
     def get_img_dir(self):
-        return self.get_dataset_path(self.training['dataName'])[0]
+        return self.get_dataset_path(self.training['dataName'])

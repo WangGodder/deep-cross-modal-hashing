@@ -9,24 +9,12 @@ training:
 datasetPath:
   Mirflickr25k:
     img_dir: I:\dataset\mirflickr25k\mirflickr
-    imgList:
-    tagList:
-    labelList:
   NUS WIDE:
     img_dir:
-    imgList:
-    tagList:
-    labelList:
   COCO2014:
     img_dir:
-    imgList:
-    tagList:
-    labelList:
   IAPR TC-12:
     img_dir:
-    imgList:
-    tagList:
-    labelList:
 
 dataPreprocess:
   img:

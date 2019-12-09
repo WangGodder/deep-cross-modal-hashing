@@ -15,9 +15,7 @@ training:
 datasetPath:
   Mirflickr25k:
     img_dir: I:\dataset\mirflickr25k\mirflickr
-    imgList:
-    tagList:
-    labelList:
+
 ```
 - run ./script/main.py and input configuration file path.
 ```python
