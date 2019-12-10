@@ -15,11 +15,11 @@ And you can download from follows url:
 - password: 0qi0
 
 #### MS-COCO
-- download: 
-- password: 
+- download: https://pan.baidu.com/s/1Iz4r-VtHVAoYJQJ-uNOYpQ
+- password: tyfw
 
 #### IAPR TC-12
-- download: 
-- password: 
+- download: https://pan.baidu.com/s/1H4ZwWpNzqyBmdetqPxTmbA
+- password: v2lw 
 
 After download these mat file, please put in data folder "torchcmh/dataset/data/$datasetname/"

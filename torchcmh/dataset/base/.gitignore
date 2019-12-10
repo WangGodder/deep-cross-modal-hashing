@@ -1,4 +1,3 @@
 # Here include 5 different dataset loader method, but i only get 2 dataset loader here. If you want to other dataset loader method, please constract me.
 quadruplet.py
-triplet.py
 triplet_ranking.py

@@ -3,7 +3,6 @@
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
 from torch import nn
-from torch.nn import functional as F
 from torchcmh.models import BasicModule
 import torch
 
@@ -21,7 +20,7 @@ def weights_init(m):
 
 
 class MLP(BasicModule):
-    def __init__(self, input_dim, output_dim, hidden_nodes=[8192], dropout=None, leakRelu=True):
+    def __init__(self, input_dim, output_dim, hidden_nodes=[8192], dropout=None, leakRelu=False):
         """
         :param input_dim: dimension of input
         :param output_dim: bit number of the final binary code
@@ -44,9 +43,6 @@ class MLP(BasicModule):
                 full_conv_layers.append(nn.ReLU(inplace=True))
         full_conv_layers.append(nn.Conv1d(in_channel, output_dim, kernel_size=1, stride=1))
         self.layers = nn.Sequential(*full_conv_layers)
-        # self.conv1 = nn.Conv2d(1, hidden_node, kernel_size=(input_dim, 1), stride=(1, 1))
-        # self.dropout = nn.Dropout(dropout) if dropout else None
-        # self.conv2 = nn.Conv2d(hidden_node, bit, kernel_size=1, stride=(1, 1))
         self.apply(weights_init)
 
     def forward(self, x: torch.Tensor):
