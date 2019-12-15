@@ -70,6 +70,11 @@ class TrainBase(object):
             scheduler.step()
 
     def plot_loss(self, title, loss_store=None):
+        """
+        plot loss in loss_store at a figure
+        :param title: the title of figure name
+        :param loss_store: the loss store to plot, if none, the default loss store will plot
+        """
         if loss_store is None:
             loss_store = self.loss_store
         if self.plotter:
