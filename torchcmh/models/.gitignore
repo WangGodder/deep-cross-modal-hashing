@@ -10,5 +10,8 @@ MSText_capsnet.py
 MSText_norm.py
 pcb.py
 resnet_gcn.py
-resnet_norm.py
 pretrain_model
+ASCHN
+ACMH
+GCH
+LCMH

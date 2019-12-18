@@ -8,11 +8,12 @@ from visdom import Visdom
 
 class VisdomLinePlotter(object):
     """Plots to Visdom"""
-    def __init__(self, env_name='challenge'):
+    def __init__(self, env_name='plotter'):
         self.viz = Visdom()
         self.env = env_name
         self.plots = {}
         self.epoch = 0
+
     def plot(self, var_name, split_name, y, x=None):
         if x is None:
             x = self.epoch
@@ -25,9 +26,12 @@ class VisdomLinePlotter(object):
             ))
         else:
             self.viz.line(X=np.array([x]), Y=np.array([y]), env=self.env, win=self.plots[var_name], name=split_name, update='append')
+
     def next_epoch(self):
         self.epoch += 1
 
+    def reset_epoch(self):
+        self.epoch = 0
 
 def get_plotter(env_name: str):
     return VisdomLinePlotter(env_name)

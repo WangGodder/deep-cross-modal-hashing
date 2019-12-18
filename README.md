@@ -1,4 +1,4 @@
-# torch cross modal (torchcmh)
+# torch cross modal hashing (torchcmh)
 
 torchcmh is a library built on PyTorch for deep learning cross modal hashing.\
 if you want use the dataset i make, please download mat file and image file by readme file in dataset package.
@@ -11,14 +11,20 @@ you need to install these package to run
 - create a configuration file as ./script/default_config.yml
 ```yaml
 training:
+  # the name of python file in training
   method: DCMH
+  # the data set name, you can choose mirflickr25k, nus wide, ms coco, iapr tc-12
   dataName: Mirflickr25K
   batchSize: 64
+  # the bit of hash codes
   bit: 64
+  # if true, the program will be run on gpu
   cuda: True
+  # the device id you want to use, if you want to multi gpu, you can use [id1, id2]
   device: 0
 datasetPath:
   Mirflickr25k:
+    # the path you download the image of data set.
     img_dir: I:\dataset\mirflickr25k\mirflickr
 
 ```

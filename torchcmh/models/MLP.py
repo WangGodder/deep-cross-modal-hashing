@@ -20,7 +20,7 @@ def weights_init(m):
 
 
 class MLP(BasicModule):
-    def __init__(self, input_dim, output_dim, hidden_nodes=[8192], dropout=None, leakRelu=False):
+    def __init__(self, input_dim, output_dim, hidden_nodes=[8192], dropout=None, leakRelu=False, norm=False):
         """
         :param input_dim: dimension of input
         :param output_dim: bit number of the final binary code
@@ -35,6 +35,8 @@ class MLP(BasicModule):
             kernel_size = input_dim if in_channel == 1 else 1
             full_conv_layers.append(nn.Conv1d(in_channel, hidden_node, kernel_size=kernel_size, stride=1))
             in_channel = hidden_node
+            if norm:
+                full_conv_layers.append(nn.BatchNorm1d(hidden_node))
             if dropout:
                 full_conv_layers.append(nn.Dropout(dropout))
             if leakRelu:

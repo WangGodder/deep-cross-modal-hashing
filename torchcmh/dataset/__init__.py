@@ -10,11 +10,11 @@ __all__ = ['single_data', 'pairwise_data', 'triplet_data', 'triplet_rank_data', 
 def triplet_data(dataset_name: str, img_dir: str, **kwargs):
     if dataset_name.lower() == 'mirflickr25k':
         from torchcmh.dataset.mirflckr25k import get_triplet_datasets
-    elif dataset_name.lower() == 'nus wide':
+    elif dataset_name.lower() in ['nus wide', 'nuswide']:
         from torchcmh.dataset.nus_wide import get_triplet_datasets
-    elif dataset_name.lower() == 'coco2014':
+    elif dataset_name.lower() in ['coco2014', 'coco', 'mscoco', 'ms coco']:
         from torchcmh.dataset.coco2014 import get_triplet_datasets
-    elif dataset_name.lower() == 'iapr tc-12':
+    elif dataset_name.lower() in ['iapr tc-12', 'iapr', 'tc-12', 'tc12']:
         from torchcmh.dataset.tc12 import get_triplet_datasets
     else:
         raise ValueError("there is no dataset name is %s" % dataset_name)
@@ -25,11 +25,11 @@ def triplet_data(dataset_name: str, img_dir: str, **kwargs):
 def single_data(dataset_name: str, img_dir: str, **kwargs):
     if dataset_name.lower() == 'mirflickr25k':
         from torchcmh.dataset.mirflckr25k import get_single_datasets
-    elif dataset_name.lower() == 'nus wide':
+    elif dataset_name.lower() in ['nus wide', 'nuswide']:
         from torchcmh.dataset.nus_wide import get_single_datasets
-    elif dataset_name.lower() == 'coco2014':
+    elif dataset_name.lower() in ['coco2014', 'coco', 'mscoco', 'ms coco']:
         from torchcmh.dataset.coco2014 import get_single_datasets
-    elif dataset_name.lower() == 'iapr tc-12':
+    elif dataset_name.lower() in ['iapr tc-12', 'iapr', 'tc-12', 'tc12']:
         from torchcmh.dataset.tc12 import get_single_datasets
     else:
         raise ValueError("there is no dataset name is %s" % dataset_name)
@@ -40,11 +40,11 @@ def single_data(dataset_name: str, img_dir: str, **kwargs):
 def pairwise_data(dataset_name: str, img_dir: str, **kwargs):
     if dataset_name.lower() == 'mirflickr25k':
         from torchcmh.dataset.mirflckr25k import get_pairwise_datasets
-    elif dataset_name.lower() == 'nus wide':
+    elif dataset_name.lower() in ['nus wide', 'nuswide']:
         from torchcmh.dataset.nus_wide import get_pairwise_datasets
-    elif dataset_name.lower() == 'coco2014':
+    elif dataset_name.lower() in ['coco2014', 'coco', 'mscoco', 'ms coco']:
         from torchcmh.dataset.coco2014 import get_pairwise_datasets
-    elif dataset_name.lower() == 'iapr tc-12':
+    elif dataset_name.lower() in ['iapr tc-12', 'iapr', 'tc-12', 'tc12']:
         from torchcmh.dataset.tc12 import get_pairwise_datasets
     else:
         raise ValueError("there is no dataset name is %s" % dataset_name)

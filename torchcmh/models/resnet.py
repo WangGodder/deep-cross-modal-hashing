@@ -114,7 +114,6 @@ class ResNet(BasicModule):
                  dropout_p=None,
                  **kwargs):
         self.inplanes = 64
-        self.out_feature = kwargs['out_feature'] if 'out_feature' in kwargs.keys() else False
         super(ResNet, self).__init__()
         self.loss = loss
         self.feature_dim = 512 * block.expansion
@@ -207,7 +206,7 @@ class ResNet(BasicModule):
         x = self.layer4(x)
         return x
 
-    def forward(self, x):
+    def forward(self, x, out_feature=False):
         f = self.featuremaps(x)
         v = self.global_avgpool(f)
         v = v.view(v.size(0), -1)
@@ -216,7 +215,7 @@ class ResNet(BasicModule):
             v = self.fc(v)
 
         y = self.classifier(v)
-        if self.out_feature and self.training:
+        if out_feature:
             return y, v
         return y
 
