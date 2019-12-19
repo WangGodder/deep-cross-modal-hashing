@@ -155,8 +155,10 @@ class TrainBase(object):
         :param epoch: current epoch
         :return:
         """
-        mapi2t, mapt2i,  qB_img, qB_txt, rB_img, rB_txt = \
+        mapi2t, mapt2i, mapi2i, mapt2t, qB_img, qB_txt, rB_img, rB_txt = \
             self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size, return_hash=True)
+        self.max_mapi2i = max(mapi2i, self.max_mapi2i)
+        self.max_mapt2t = max(mapt2t, self.max_mapt2t)
         if mapt2i + mapi2t >= self.max_mapi2t + self.max_mapt2i:
             self.max_mapi2t = mapi2t
             self.max_mapt2i = mapt2i
@@ -167,9 +169,10 @@ class TrainBase(object):
             self.qB_txt = qB_txt.cpu()
             self.rB_img = rB_img.cpu()
             self.rB_txt = rB_txt.cpu()
-            # self.best_train_img, self.best_train_txt = self.get_train_hash()
-        print('epoch: [%3d/%3d], valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f in epoch %d' %
-              (epoch + 1, self.max_epoch, mapi2t, mapt2i, self.max_mapi2t, self.max_mapt2i, self.best_epoch + 1))
+        print('epoch: [%3d/%3d], valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, MAP(i->i): %3.4f, MAP(t->t): %3.4f \n '
+              'max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, MAP(i->i): %3.4f, MAP(t->t): %3.4f. the best epoch is %d' %
+              (epoch + 1, self.max_epoch, mapi2t, mapt2i, mapi2i, mapt2t,
+               self.max_mapi2t, self.max_mapt2i, self.max_mapi2i, self.max_mapt2t, self.best_epoch + 1))
         if self.plotter:
             self.plotter.plot("mAP", 'i->t', mapi2t.item())
             self.plotter.plot("mAP", "t->i", mapt2i.item())
@@ -219,9 +222,9 @@ class TrainBase(object):
     def get_codes(img_model, txt_model, dataset, bit, batch_size, cuda=True):
         dataset.both_load()
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=4, pin_memory=True)
-        B_img = B_txt = torch.empty(len(dataset), bit, dtype=torch.float)
+        img_buffer = txt_buffer = torch.empty(len(dataset), bit, dtype=torch.float)
         if cuda:
-            B_img, B_txt = TrainBase.to_cuda(B_img, B_txt)
+            img_buffer, txt_buffer = TrainBase.to_cuda(img_buffer, txt_buffer)
         img_model.eval()
         txt_model.eval()
         for data in tqdm(dataloader):
@@ -232,9 +235,9 @@ class TrainBase(object):
                 img, txt = TrainBase.to_cuda(img, txt)
             img_hash = torch.tanh(img_model(img))
             txt_hash = torch.tanh(txt_model(txt))
-            B_img[index, :] = img_hash.data()
-            B_txt[index, :] = txt_hash.data()
-        return B_img, B_txt
+            img_buffer[index, :] = img_hash.data
+            txt_buffer[index, :] = txt_hash.data
+        return img_buffer, txt_buffer
 
     @staticmethod
     def get_img_code(img_model, dataset, bit, batch_size, drop_integer=False, cuda=True):
