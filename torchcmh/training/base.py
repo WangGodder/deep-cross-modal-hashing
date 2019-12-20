@@ -176,6 +176,8 @@ class TrainBase(object):
         if self.plotter:
             self.plotter.plot("mAP", 'i->t', mapi2t.item())
             self.plotter.plot("mAP", "t->i", mapt2i.item())
+            self.plotter.plot("mAP", "i->i", mapi2i.item())
+            self.plotter.plot("mAP", "t->t", mapt2t.item())
         self.save_code(epoch)
 
     @staticmethod
