@@ -26,7 +26,6 @@ def run(config_path='default_config.yml', **kwargs):
     kwargs['img_valid_transform'] = config.img_valid_transform
     kwargs['txt_train_transform'] = config.txt_training_transform
     kwargs['txt_valid_transform'] = config.txt_valid_transform
-    # img_dir, img_list, tag_list, label_list = config.get_dataset_path(dataset_name)
     t = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     sys.stdout = Logger(os.path.join('..', 'logs', method.upper(), data_name.upper(), t + '.txt'))
     if cuda:

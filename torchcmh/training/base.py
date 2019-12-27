@@ -4,6 +4,7 @@
 # @Github  : https://github.com/WangGodder
 import os
 import torch
+import sys
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchcmh.utils import get_plotter, AverageMeter
@@ -37,6 +38,7 @@ class TrainBase(object):
         self.best_epoch = 0
         self.qB_img = self.qB_txt = self.rB_img = self.rB_txt = None
         self.best_train_img = self.best_train_txt = None
+        self.valid_frequency = 1
 
     def _init(self):
         self.schedulers = self.__lr_scheduler()
@@ -88,6 +90,7 @@ class TrainBase(object):
         for name, value in loss_store.items():
             loss_str += name + " {:4.3f}".format(value.avg) + "\t"
         print(loss_str)
+        sys.stdout.flush()
 
     def reset_loss(self, loss_store=None):
         if loss_store is None:
