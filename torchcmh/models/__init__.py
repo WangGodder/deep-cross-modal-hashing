@@ -3,7 +3,7 @@
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
 import os
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 __author__ = 'Xinzhi Wang'
 from .base import BasicModule
 

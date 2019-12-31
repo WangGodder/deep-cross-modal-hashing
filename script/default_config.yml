@@ -30,7 +30,7 @@ dataPreprocess:
     onehot: True
 
 dataAugmentation:
-  enable: False
+  enable: True
   img:
     enable: True
     originalRetention: 0.2
@@ -45,7 +45,7 @@ dataAugmentation:
       enable: True
       probability: 0.5
   txt:
-    enable: True
+    enable: False
     originalRetention: 0.5
     RandomErasure:
       enable: True

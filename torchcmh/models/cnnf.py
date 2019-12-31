@@ -12,14 +12,14 @@ pretrain_model = os.path.join(abs_dir, "pretrain_model", "imagenet-vgg-f.pth")
 
 
 class CNNF(BasicModule):
-    def __init__(self, bit, leakRelu=False, bn=False):
+    def __init__(self, bit, leakRelu=None, bn=False):
         super(CNNF, self).__init__()
         self.module_name = "CNNF"
         self.features = nn.Sequential(
             # 0 conv1
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=11, stride=4),
             # 1 relu1
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 2 norm1
             nn.BatchNorm2d(64) if bn else nn.LocalResponseNorm(size=2, k=2),
             # 3 pool1
@@ -28,7 +28,7 @@ class CNNF(BasicModule):
             # 4 conv2
             nn.Conv2d(in_channels=64, out_channels=256, kernel_size=5, stride=1, padding=2),
             # 5 relu2
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 6 norm2
             nn.BatchNorm2d(256) if bn else nn.LocalResponseNorm(size=2, k=2),
             # 7 pool2
@@ -36,15 +36,15 @@ class CNNF(BasicModule):
             # 8 conv3
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             # 9 relu3
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 10 conv4
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             # 11 relu4
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 12 conv5
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             # 13 relu5
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 14 pool5
             nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2), padding=(0, 0)),
         )
@@ -52,11 +52,11 @@ class CNNF(BasicModule):
             # 15 full_conv6
             nn.Conv2d(in_channels=256, out_channels=4096, kernel_size=6),
             # 16 relu6
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
             # 17 full_conv7
             nn.Conv2d(in_channels=4096, out_channels=4096, kernel_size=1),
             # 18 relu7
-            nn.LeakyReLU(inplace=True) if leakRelu else nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=leakRelu, inplace=True) if leakRelu else nn.ReLU(inplace=True),
         )
         # fc8
         self.classifier = nn.Linear(in_features=4096, out_features=bit)
@@ -85,7 +85,7 @@ class CNNF(BasicModule):
         return out
 
 
-def get_cnnf(bit, pretrain=True, leakRelu=False, bn=False):
+def get_cnnf(bit, pretrain=True, leakRelu=None, bn=False):
     model = CNNF(bit, leakRelu=leakRelu, bn=bn)
     if pretrain:
         model.init_pretrained_weights(pretrain_model)
