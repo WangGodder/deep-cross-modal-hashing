@@ -3,7 +3,7 @@
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
 import warnings
-methods = ['DCMH', 'TDH', 'CMHH', 'ASCHN', 'PRDH', 'SSAH', 'RDCMH', 'ASCHN_nMS', 'ASCHN focal', 'QDCMH', 'CDQ', 'CHN', 'BCDH', 'MCDH']
+methods = ['DCMH', 'TDH', 'CMHH', 'SCAHN', 'PRDH', 'SSAH', 'RDCMH', 'ASCHN_nMS', 'SCAHN focal', 'QDCMH', 'CDQ', 'CHN', 'BCDH', 'MCDH']
 
 
 __all__ = ['get_train']
