@@ -159,7 +159,7 @@ class TrainBase(object):
         :return:
         """
         mapi2t, mapt2i, mapi2i, mapt2t, qB_img, qB_txt, rB_img, rB_txt = \
-            self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size, return_hash=True)
+            self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size, return_hash=True, cuda=self.cuda)
         self.max_mapi2i = max(mapi2i, self.max_mapi2i)
         self.max_mapt2t = max(mapt2t, self.max_mapt2t)
         if mapt2i + mapi2t >= self.max_mapi2t + self.max_mapt2i:
@@ -184,7 +184,7 @@ class TrainBase(object):
         self.save_code(epoch)
 
     @staticmethod
-    def valid_calc(img_model, txt_model, dataset, bit, batch_size, drop_integer=False, return_hash=False):
+    def valid_calc(img_model, txt_model, dataset, bit, batch_size, drop_integer=False, return_hash=False, cuda=True):
         """
         get valid data hash code and calculate mAP
         :param img_model: the image model
@@ -194,15 +194,16 @@ class TrainBase(object):
         :param batch_size: the batch size of valid
         :param drop_integer: if true, the excrescent data will be drop
         :param return_hash: if true, the hash codes will be returned
+        :param cuda: if use cuda
         :return: mAP and hash codes(if return_hash = True)
         """
         # get query img and txt binary code
         dataset.query()
-        qB_img, qB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size)
+        qB_img, qB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size, cuda=cuda)
         query_label = dataset.get_all_label()
         # get retrieval img and txt binary code
         dataset.retrieval()
-        rB_img, rB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size)
+        rB_img, rB_txt = TrainBase.get_codes(img_model, txt_model, dataset, bit, batch_size, cuda=cuda)
         retrieval_label = dataset.get_all_label()
         mAPi2t = calc_map_k(qB_img, rB_txt, query_label, retrieval_label)
         mAPt2i = calc_map_k(qB_txt, rB_img, query_label, retrieval_label)
