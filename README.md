@@ -9,9 +9,11 @@ Including:
 - config call
 ----
 ### Dataset
+
 There are four datasets(Mirflickr25k, Nus Wide, MS coco, IAPR TC-12) sort out by myself,
 if you want use these datasets, please download mat file and image file by readme file in dataset package.\
-Please read "[readme](./dataset/README.md)" in dataset package
+Please read "[readme](https://github.com/WangGodder/deep-cross-modal-hashing/torchcmh/dataset/README.md)" in dataset package
+
 ----
 ### Dependencies 
 you need to install these package to run
