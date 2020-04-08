@@ -3,9 +3,9 @@
 # @Author  : Godder
 # @Github  : https://github.com/WangGodder
 import os
-__version__ = '0.2.8'
+__version__ = '0.3.0'
 __author__ = 'Xinzhi Wang'
-from .base import BasicModule
+from torchcmh.models.base import BasicModule
 
 
 abs_dir = os.path.abspath(os.path.dirname(__file__))
