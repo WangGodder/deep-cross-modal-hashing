@@ -10,7 +10,6 @@ from .pairwise import CrossModalPairwiseTrain
 from .single import CrossModalSingleTrain
 from .triplet import CrossModalTripletTrain
 from .quadruplet import CrossModalQuadrupletTrain
-from .triplet_ranking import CrossModalTripletRankingTrain
 
 
 __all__ = ['CrossModalTrainBase', 'CrossModalValidBase', 'CrossModalSingleTrain',
