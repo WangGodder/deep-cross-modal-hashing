@@ -25,7 +25,11 @@ class BasicModule(nn.Module):
         if model_url[:4] == "http":
             pretrain_dict = model_zoo.load_url(model_url)
         else:
-            pretrain_dict = torch.load(model_url)
+            try:
+                pretrain_dict = torch.load(model_url)
+            except FileExistsError:
+                print("{} not find".format(model_url))
+                return
         model_dict = self.state_dict()
         pretrain_dict = {k: v for k, v in pretrain_dict.items() if k in model_dict and model_dict[k].size() == v.size()}
         model_dict.update(pretrain_dict)

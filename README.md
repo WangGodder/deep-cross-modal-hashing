@@ -15,6 +15,11 @@ if you want use these datasets, please download mat file and image file by readm
 Please read "[readme](./torchcmh/dataset/README.md)" in dataset package
 
 ----
+### Model
+You can crate model or use existing model. 
+We support some pre-train models, you can check out the [README.md](./torchcmh/models/README.md) file in details.
+
+---
 ### Dependencies 
 you need to install these package to run
 - visdom 0.1.8+
