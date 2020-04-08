@@ -11,6 +11,7 @@ CMHH_new.py
 CMHH_old.py
 DCMH_bitscalable.py
 DCMH_focal.py
+DCMH_cos.py
 MCDH_focal.py
 MCDRH.py
 SePH.py
@@ -22,6 +23,8 @@ TDH.py
 SSAH.py
 MCGDH.py
 RDCMH.py
-CMHH.py
 CHN.py
 GCH.py
+GACMH.py
+GANCMH.py
+LCMH.py

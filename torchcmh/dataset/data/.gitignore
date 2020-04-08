@@ -1,0 +1,23 @@
+# Created by .ignore support plugin (hsz.mobi)
+
+coco2014/imgList.mat
+coco2014/labelList.mat
+coco2014/tagList.mat
+
+iapr tc-12/imgList.mat
+iapr tc-12/labelList.mat
+iapr tc-12/tagList.mat
+
+mirflckr25k/imgList.mat
+mirflckr25k/labelList.mat
+mirflckr25k/tagList.mat
+
+nus wide/imgList21.mat
+nus wide/labelList21.mat
+nus wide/tagList21.mat
+
+load.py
+coco2014.zip
+iapr tc-12.zip
+mirflckr25k.zip
+nus wide.zip

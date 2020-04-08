@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torchcmh.models import cnnf, MLP
 from torchcmh.training.base import TrainBase
 from torchcmh.utils import calc_neighbor
-from torchcmh.dataset.utils import single_data
+from torchcmh.dataset import single_data
 
 
 class PRDH(TrainBase):

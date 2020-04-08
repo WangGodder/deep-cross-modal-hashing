@@ -14,6 +14,9 @@ def calc_neighbor(label1, label2):
 
 
 class CrossModalTripletTrain(CrossModalTrainBase):
+    """
+    Triplet: return one sample(s), one positive(p), one negative(n)
+    """
     def __init__(self, img_dir: str, img_names: np.ndarray, txt_matrix: np.ndarray, label_matrix: np.ndarray, batch_size,
                  img_transform, txt_transform):
         super(CrossModalTripletTrain, self).__init__(img_dir, img_names, txt_matrix, label_matrix, img_transform, txt_transform)

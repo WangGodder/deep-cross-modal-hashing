@@ -91,19 +91,11 @@ def get_triplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=d
                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
 
 
-# def get_quadruplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
-#                             batch_size=128, train_num=10000, query_num=2000, seed=default_seed, **kwargs):
-#     print("load data set quadruplet Mirflckr25K")
-#     return load_dataset(CrossModalQuadrupletTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
-#                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
-#
-#
-# def get_triplet_ranking_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url,
-#                                  label_mat_url=default_label_mat_url, batch_size=128, train_num=10000, query_num=2000,
-#                                  seed=default_seed, **kwargs):
-#     print("load data set triplet ranking Mirflckr25K")
-#     return load_dataset(CrossModalTripletRankingTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
-#                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
+def get_quadruplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
+                            batch_size=128, train_num=10000, query_num=2000, seed=default_seed, **kwargs):
+    print("load data set quadruplet Mirflckr25K")
+    return load_dataset(CrossModalQuadrupletTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
+                        train_num=train_num, query_num=query_num, seed=seed, **kwargs)
 
 
-__all__ = ['get_single_datasets', 'get_pairwise_datasets', 'get_triplet_datasets']
+__all__ = ['get_single_datasets', 'get_pairwise_datasets', 'get_triplet_datasets', 'get_quadruplet_datasets']

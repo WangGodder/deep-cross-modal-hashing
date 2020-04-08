@@ -72,43 +72,30 @@ def load_dataset(train_dataset, img_dir, img_mat_url=default_img_mat_url, tag_ma
 
 def get_single_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
                         batch_size=128, train_num=10000, query_num=5000, seed=default_seed, **kwargs):
-    print("load data set single COCO2014")
+    print("load data set single MS COCO")
     return load_dataset(CrossModalSingleTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size, train_num=train_num,
                         query_num=query_num, seed=seed, **kwargs)
 
 
 def get_pairwise_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
                           batch_size=128, train_num=10000, query_num=5000, seed=default_seed, **kwargs):
-    print("load data set pairwise COCO2014")
+    print("load data set pairwise MS COCO")
     return load_dataset(CrossModalPairwiseTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
 
 
 def get_triplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
                          batch_size=128, train_num=10000, query_num=5000, seed=default_seed, **kwargs):
-    print("load data set triplet COCO2014")
+    print("load data set triplet MS COCO")
     return load_dataset(CrossModalTripletTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
 
 
-def get_triplet_ranking_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url,
-                                 label_mat_url=default_label_mat_url, batch_size=128, train_num=10000, query_num=5000,
-                                 seed=default_seed, **kwargs):
-    print("load data set triplet ranking COCO2014")
-    return load_dataset(CrossModalTripletRankingTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
+def get_quadruplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
+                            batch_size=128, train_num=10000, query_num=2000, seed=default_seed, **kwargs):
+    print("load data set quadruplet MS COCO")
+    return load_dataset(CrossModalQuadrupletTrain, img_dir, img_mat_url, tag_mat_url, label_mat_url, batch_size=batch_size,
                         train_num=train_num, query_num=query_num, seed=seed, **kwargs)
 
-# def get_quadruplet_datasets(img_dir, img_mat_url=default_img_mat_url, tag_mat_url=default_tag_mat_url, label_mat_url=default_label_mat_url,
-#                             batch_size=128, train_num=10000, query_num=2000, seed=default_seed):
-#     global img_names, txt, label
-#     if img_names is None:
-#         all_img_names, all_txt, all_label = load_mat(img_mat_url, tag_mat_url, label_mat_url)
-#         img_names, txt, label = split_data(all_img_names, all_txt, all_label, query_num, train_num, seed)
-#         print("COCO2014 data load and shuffle by seed %d" % seed)
-#     print("load data set quadruplet COCO2014")
-#     train_data = CrossModalQuadrupletTrain(img_dir, img_names[1], txt[1], label[1], train_transform, batch_size)
-#     valid_data = CrossModalValidBase(img_dir, img_names[0], img_names[2], txt[0], txt[2], label[0], label[2], valid_transform)
-#     return train_data, valid_data
 
-
-__all__ = ['get_single_datasets', 'get_pairwise_datasets', 'get_triplet_datasets']
+__all__ = ['get_single_datasets', 'get_pairwise_datasets', 'get_triplet_datasets', 'get_quadruplet_datasets']

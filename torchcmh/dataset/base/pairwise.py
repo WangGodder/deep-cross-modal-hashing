@@ -8,6 +8,9 @@ import torch
 
 
 class CrossModalPairwiseTrain(CrossModalTrainBase):
+    """
+    Pairwise: return two random sample, they might be either dissimilarity or dissimilarity
+    """
     def __init__(self, img_dir: str, img_names: np.ndarray, txt_matrix: np.ndarray, label_matrix: np.ndarray, batch_size,
                  img_transform=None, txt_transform=None):
         super(CrossModalPairwiseTrain, self).__init__(img_dir, img_names, txt_matrix, label_matrix, img_transform, txt_transform)

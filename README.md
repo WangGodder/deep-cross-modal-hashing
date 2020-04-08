@@ -8,15 +8,25 @@ Including:
 - loss function API
 - config call
 ----
+### Dataset
 There are four datasets(Mirflickr25k, Nus Wide, MS coco, IAPR TC-12) sort out by myself,
-if you want use these datasets, please download mat file and image file by readme file in dataset package.
-
+if you want use these datasets, please download mat file and image file by readme file in dataset package.\
+Please read "[readme](./dataset/README.md)" in dataset package
+----
+### Dependencies 
 you need to install these package to run
 - visdom 0.1.8+
 - pytorch 1.0.0+
 - tqdm 4.0+
 ----
-### how to using
+### Logs and checkpoints
+
+All method training will create a log and checkpoint to store the model. \
+you can find log in ./logs/\{method_name\}/\{dataset_name\}/date.txt \
+you can find checkpoints in ./checkpoints/\{method_name\}/\{dataset_name\}/\{bit\}-\{model_name\}.pth
+
+----
+### How to using
 - create a configuration file as ./script/default_config.yml
 ```yaml
 training:
@@ -43,22 +53,48 @@ from torchcmh.run import run
 if __name__ == '__main__':
     run(config_path='default_config.yml')
 ```
+- data visualization
+Before you start trainer, please use command as follows to open visdom server.
+```shell script
+python -m visdom.server
+```
+Then you can see the charts in browser in special port.
+
 ----
-### how to create your method
+### How to create your method
 - create new method file in folder ./torchcmh/training/
 - inherit implement TrainBase
-- change the training.method as your python file name in config .yml file and run.
+- change config.yml file and run.
 
 #### some function in TrainBase
-- data visualization
-```python
-def plot_loss(self, title: str, loss_store=None):   # args:title is the title of graph
-    if loss_store is None:
-        loss_store = self.loss_store
-    if self.plotter:
-        for name, loss in loss_store.items():
-            self.plotter.plot(title, name, loss.avg)
+- loss variable \
+In your method, some variables you need to store and check, such as loss and acc. 
+You can use var in TrainBase "loss_store" to store:
+```pythn
+self.loss_store = ["log loss", 'quantization loss', 'balance loss', 'loss']
 ```
+"loss_store" is a list, push the name and update value by "loss_store\[name\].update()":
+```python
+value = 1000    # the value to update 
+n = 10          # the number of instance for current value
+self.loss_store['log loss'].update(value, n)
+```
+For print and visualization the loss, you can use:
+```python
+epoch = 1       # current epoch
+self.print_loss(epoch)  # print loss
+self.plot_loss("img loss")  # visualization img loss is the name of chart
+```
+clean "loss_store"
+```python
+self.reset_loss()   # reset loss_store
+```
+- parameters
+In your method, all parameters can be stored as follows:
+```python
+self.parameters = {'gamma': 1, 'eta': 1}    # {name: value}
+```
+when method training, log will record the parameters and learning rate.
 - valid
 ```python
 for epoch in range(self.max_epoch):
