@@ -14,6 +14,5 @@ from .triplet_ranking import CrossModalTripletRankingTrain
 
 
 __all__ = ['CrossModalTrainBase', 'CrossModalValidBase', 'CrossModalSingleTrain',
-           'CrossModalPairwiseTrain', 'CrossModalTripletTrain', 'CrossModalQuadrupletTrain',
-           'CrossModalTripletRankingTrain']
+           'CrossModalPairwiseTrain', 'CrossModalTripletTrain', 'CrossModalQuadrupletTrain']
 
