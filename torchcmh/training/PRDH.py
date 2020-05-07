@@ -126,7 +126,7 @@ class PRDH(TrainBase):
 
         quantization = torch.sum(torch.pow(self.B - C, 2))
         quantization /= (self.num_train * self.batch_size)
-        balance = torch.sum(torch.pow(cur_h.t().mm(self.ones) + self.C[unupdated_ind].t().mm(self.ones_), 2))
+        balance = torch.sum(torch.pow(cur_h.t().mm(self.ones) + C[unupdated_ind].t().mm(self.ones_), 2))
         balance /= (self.num_train * self.batch_size)
         regularization_loss = quantization + balance
         regularization_loss *= self.parameters['gamma']
