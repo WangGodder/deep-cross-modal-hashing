@@ -1,4 +1,5 @@
 # deep cross modal hashing (torchcmh)
+[Chinese readme](./README_zh.md)
 
 torchcmh is a library built on PyTorch for deep learning cross modal hashing.\
 Including: 
