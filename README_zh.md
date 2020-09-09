@@ -14,6 +14,7 @@ torchcmh是一个基于PyTorch的深度跨模态hashing库
 包括了4个我自己制作的数据集(Mirflickr25k, Nus Wide, MS coco, IAPR TC-12)
 如果需要使用可以下载对应的.mat文件并去官网下载对应的数据集
 下载方式见数据集目录下的[readme](./torchcmh/dataset/README.md)
+
 -------
 ### 模型
 
