@@ -121,7 +121,7 @@ class ResNet(BasicModule):
                  fusion_num=4,
                  **kwargs):
         self.inplanes = 64
-        self.module_name = 'ASCHN_resnet'
+        self.module_name = 'SCAHN_resnet'
         self.fusion_num = fusion_num
         super(ResNet, self).__init__()
         self.feature_dims = [64 * block.expansion, 128 * block.expansion, 256 * block.expansion, 512 * block.expansion]
