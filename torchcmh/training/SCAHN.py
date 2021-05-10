@@ -16,7 +16,6 @@ from torchcmh.dataset import pairwise_data
 
 __all__ = ['train']
 
-
 """
 @article{SCAHN
 author = {Xinzhi Wang,Xitao Zou,Erwin M. Bakker, Song Wu},
@@ -28,15 +27,16 @@ date = {13 March 2020},
 
 
 class SCAHN(TrainBase):
-    def __init__(self, data_name: str, img_dir: str, bit: int, img_net, visdom=True, batch_size=128, cuda=True, **kwargs):
+    def __init__(self, data_name: str, img_dir: str, bit: int, img_net, visdom=True, batch_size=128, cuda=True,
+                 **kwargs):
         super(SCAHN, self).__init__("SCAHN", data_name, bit, batch_size, visdom, cuda)
         self.train_data, self.valid_data = pairwise_data(data_name, img_dir, batch_size=batch_size, **kwargs)
         self.loss_store = ['inter loss', 'intra loss', 'pairwise intra loss', 'quantization loss', 'loss']
         self.parameters = {'fusion num': 4, 'alpha': 2 ** np.log2(bit / 32), 'lambda': 1, 'gamma': 0.01, 'beta': 2}
-        self.lr = {'img': 10**(-1.1), 'txt': 10**(-1.1)}
+        self.lr = {'img': 10 ** (-1.1), 'txt': 10 ** (-1.1)}
         self.max_epoch = 500
         self.lr_decay_freq = 1
-        self.lr_decay = (10**(-6) / 10 ** (-1.5)) ** (1 / self.max_epoch)
+        self.lr_decay = (10 ** (-6) / 10 ** (-1.5)) ** (1 / self.max_epoch)
 
         self.num_train = len(self.train_data)
         self.img_model = img_net(bit, self.parameters['fusion num'])
@@ -58,8 +58,8 @@ class SCAHN(TrainBase):
         self._init()
 
     def train(self, num_works=4):
-        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, drop_last=True, num_workers=num_works, shuffle=False,
-                                  pin_memory=True)
+        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, drop_last=True, num_workers=num_works,
+                                  shuffle=False, pin_memory=True)
         for epoch in range(self.max_epoch):
             self.img_model.train()
             self.txt_model.train()
@@ -95,7 +95,11 @@ class SCAHN(TrainBase):
                 F = Variable(self.F_buffer)
                 G = Variable(self.G_buffer)
 
-                inter_loss, intra_loss, intra_pair_loss, quantization_loss = self.object_function(hash1_layers, hash2_layers, hash1, hash2, sample_L1, sample_L2, F, G,ind1, ind2)
+                inter_loss, intra_loss, intra_pair_loss, quantization_loss = self.object_function(hash1_layers,
+                                                                                                  hash2_layers, hash1,
+                                                                                                  hash2, sample_L1,
+                                                                                                  sample_L2, F, G, ind1,
+                                                                                                  ind2)
 
                 loss = inter_loss + intra_pair_loss + intra_loss + quantization_loss
 
@@ -142,8 +146,11 @@ class SCAHN(TrainBase):
                 F = Variable(self.F_buffer)
                 G = Variable(self.G_buffer)
 
-                inter_loss, intra_loss, intra_pair_loss, quantization_loss = self.object_function(hash1_layers, hash2_layers, hash1, hash2,
-                                                                                                  sample_L1, sample_L2, G, F, ind1, ind2)
+                inter_loss, intra_loss, intra_pair_loss, quantization_loss = self.object_function(hash1_layers,
+                                                                                                  hash2_layers, hash1,
+                                                                                                  hash2,
+                                                                                                  sample_L1, sample_L2,
+                                                                                                  G, F, ind1, ind2)
 
                 loss = inter_loss + intra_pair_loss + intra_loss + quantization_loss
 
@@ -169,9 +176,11 @@ class SCAHN(TrainBase):
         S_inter2 = calc_neighbor(label2, self.train_L)
         S_intra = calc_neighbor(label1, label2)
 
-        inter_loss1, inter_loss2 = calc_inter_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, G, self.parameters['alpha'])
+        inter_loss1, inter_loss2 = calc_inter_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, G,
+                                                   self.parameters['alpha'])
         inter_loss = 0.5 * (inter_loss1 + inter_loss2)
-        intra_loss1, intra_loss2 = calc_intra_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, F, self.parameters['alpha'])
+        intra_loss1, intra_loss2 = calc_intra_loss(hash_layers1, hash_layer2, S_inter1, S_inter2, F,
+                                                   self.parameters['alpha'])
         intra_loss = 0.5 * (intra_loss1 + intra_loss2) * self.parameters['lambda']
         intra_pair_loss = calc_intra_pairwise_loss(hash_layers1, hash_layer2, S_intra, self.parameters['alpha'])
         intra_pair_loss = intra_pair_loss * self.parameters['gamma']
@@ -186,11 +195,12 @@ class SCAHN(TrainBase):
             from torch.nn import functional as F
             w_img = img_net.weight.weight
             w_txt = txt_net.weight.weight
-            w_img = F.softmax(w_img, dim=0)
-            w_txt = F.softmax(w_txt, dim=0)
+            # w_img = F.softmax(w_img, dim=0)
+            # w_txt = F.softmax(w_txt, dim=0)
             w = torch.cat([w_img, w_txt], dim=0)
             w = torch.sum(w, dim=0)
-            _, ind = torch.sort(w)
+            # _, ind = torch.sort(w)
+            _, ind = torch.sort(w, descending=True)  # 临时降序
             return ind
 
         hash_length = qB_img.size(1)
@@ -224,20 +234,24 @@ class SCAHN(TrainBase):
         :return:
         """
         mapi2t, mapt2i, qB_img, qB_txt, rB_img, rB_txt = \
-            self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size, return_hash=True)
+            self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size,
+                            return_hash=True)
         if mapt2i + mapi2t >= self.max_mapi2t + self.max_mapt2i:
             self.max_mapi2t = mapi2t
             self.max_mapt2i = mapt2i
             self.best_epoch = epoch
             import os
-            self.img_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.img_model.module_name + '.pth'))
-            self.txt_model.save_dict(os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.txt_model.module_name + '.pth'))
+            self.img_model.save_dict(
+                os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.img_model.module_name + '.pth'))
+            self.txt_model.save_dict(
+                os.path.join(self.checkpoint_dir, str(self.bit) + '-' + self.txt_model.module_name + '.pth'))
             self.qB_img = qB_img.cpu()
             self.qB_txt = qB_txt.cpu()
             self.rB_img = rB_img.cpu()
             self.rB_txt = rB_txt.cpu()
             if (epoch + 1) > 10:
-                self.bit_scalable(self.img_model, self.txt_model, self.qB_img, self.qB_txt, self.rB_img, self.rB_txt, self.valid_data)
+                self.bit_scalable(self.img_model, self.txt_model, self.qB_img, self.qB_txt, self.rB_img, self.rB_txt,
+                                  self.valid_data)
             # self.best_train_img, self.best_train_txt = self.get_train_hash()
         print(
             'epoch: [%3d/%3d], valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f, max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f in epoch %d' %
@@ -248,7 +262,8 @@ class SCAHN(TrainBase):
         self.save_code(epoch)
 
 
-def train(dataset_name: str, img_dir: str, bit: int, img_net_name='resnet34', visdom=True, batch_size=128, cuda=True, **kwargs):
+def train(dataset_name: str, img_dir: str, bit: int, img_net_name='resnet34', visdom=True, batch_size=128, cuda=True,
+          **kwargs):
     img_net = resnet34 if img_net_name == 'resnet34' else resnet18
     trainer = SCAHN(dataset_name, img_dir, bit, img_net, visdom, batch_size, cuda, **kwargs)
     trainer.train()
@@ -260,14 +275,16 @@ def calc_inter_loss(hash1_layers, hash2_layers, S1, S2, O, alpha):
         theta = 1.0 / alpha * torch.matmul(hash1_layer, O.t())
         logloss = -torch.mean(S1 * theta - torch.log(1 + torch.exp(theta)))
         if torch.isinf(logloss):
-            print("the log loss is inf in hash1 of layer %d, with the max of theta is %3.4f" % (index, torch.max(theta).data))
+            print("the log loss is inf in hash1 of layer %d, with the max of theta is %3.4f" % (
+                index, torch.max(theta).data))
         inter_loss1 += logloss
     inter_loss2 = 0
     for index, hash2_layer in enumerate(hash2_layers):
         theta = 1.0 / alpha * torch.matmul(hash2_layer, O.t())
         logloss = -torch.mean(S2 * theta - torch.log(1 + torch.exp(theta)))
         if torch.isinf(logloss):
-            print("the log loss is inf in hash2 of layer %d, with the max of theta is %3.4f" % (index, torch.max(theta).data))
+            print("the log loss is inf in hash2 of layer %d, with the max of theta is %3.4f" % (
+                index, torch.max(theta).data))
         inter_loss2 += logloss
     return inter_loss1 / len(hash1_layers), inter_loss2 / len(hash2_layers)
 
@@ -280,7 +297,8 @@ def calc_intra_pairwise_loss(hash1_layers, hash2_layers, S, alpha):
         theta = 1.0 / alpha * torch.matmul(hash1_layer, hash2_layer.t())
         logloss = -torch.mean(S * theta - torch.log(1 + torch.exp(theta)))
         if torch.isinf(logloss):
-            print("the log loss is inf in hash1 and hash2 of layer %d, with the max of theta is %3.4f" % (index, torch.max(theta).data))
+            print("the log loss is inf in hash1 and hash2 of layer %d, with the max of theta is %3.4f" % (
+                index, torch.max(theta).data))
         intra_loss += logloss
     return intra_loss / len(hash1_layers)
 
