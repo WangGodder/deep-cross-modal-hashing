@@ -66,6 +66,10 @@ Before you start trainer, please use command as follows to open visdom server.
 ```shell script
 python -m visdom.server
 ```
+Or you can run script/visdom_open.py
+```shell
+python script/visdom_open.py
+```
 Then you can see the charts in browser in special port.
 
 ----
@@ -73,6 +77,18 @@ Then you can see the charts in browser in special port.
 - create new method file in folder ./torchcmh/training/
 - inherit implement TrainBase
 - change config.yml file and run.
+
+#### A easy way to create your method
+run script create_algorithm.py as following:
+```shell
+python create_algorithm.py ${method_name}
+```
+You can assign the method name by command or in create_algorithm.py
+
+After running create_algorithm.py, you should get a new python file with your method name in "torchcmh/training/".
+And you should also get a directory with your method name in "torchcmh/models".
+
+Finish your algorithm and run it.
 
 #### some function in TrainBase
 - loss variable \

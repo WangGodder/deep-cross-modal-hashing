@@ -8,8 +8,8 @@ from visdom import Visdom
 
 class VisdomLinePlotter(object):
     """Plots to Visdom"""
-    def __init__(self, env_name='plotter'):
-        self.viz = Visdom()
+    def __init__(self, env_name='plotter', port=8097):
+        self.viz = Visdom(port=port)
         self.env = env_name
         self.plots = {}
         self.epoch = 0
@@ -32,6 +32,7 @@ class VisdomLinePlotter(object):
 
     def reset_epoch(self):
         self.epoch = 0
+
 
 def get_plotter(env_name: str):
     return VisdomLinePlotter(env_name)

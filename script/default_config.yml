@@ -10,11 +10,11 @@ datasetPath:
   Mirflickr25k:
     img_dir: I:\dataset\mirflickr25k\mirflickr
   NUS WIDE:
-    img_dir:
+    img_dir: I:\dataset\nuswide\
   COCO2014:
-    img_dir:
+    img_dir: I:\dataset\coco2014\
   IAPR TC-12:
-    img_dir:
+    img_dir: I:\dataset\iaprtc-12\
 
 dataPreprocess:
   img:
