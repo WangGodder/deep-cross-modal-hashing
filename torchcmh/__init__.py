@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __author__ = 'Xinzhi Wang'
 __description__ = 'Deep Cross Modal Hashing in PyTorch'
 
@@ -17,5 +17,6 @@ from torchcmh import (
     utils,
     loss,
     evaluate,
-    run
+    run,
+    create_trainer
 )

@@ -61,7 +61,7 @@ class ${train_name}(TrainBase):
         # do something after calculated MAP
 
 
-def train(dataset_name: str, img_dir: str, bit: int, img_net_name='resnet34', visdom=True, batch_size=128, cuda=True,
+def train(dataset_name: str, img_dir: str, bit: int, visdom=True, batch_size=128, cuda=True,
           **kwargs):
     # do some check before running trainer
     # ...
