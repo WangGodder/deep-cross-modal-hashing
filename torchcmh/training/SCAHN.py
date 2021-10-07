@@ -235,7 +235,7 @@ class SCAHN(TrainBase):
         """
         mapi2t, mapt2i, qB_img, qB_txt, rB_img, rB_txt = \
             self.valid_calc(self.img_model, self.txt_model, self.valid_data, self.bit, self.batch_size,
-                            return_hash=True)
+                            return_hash=True, cuda=self.cuda)
         if mapt2i + mapi2t >= self.max_mapi2t + self.max_mapt2i:
             self.max_mapi2t = mapi2t
             self.max_mapt2i = mapt2i
